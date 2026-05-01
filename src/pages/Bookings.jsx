@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
 import { getAllBookings, updateBookingStatus } from "../services/bookingService";
 import { getAllPandits } from "../services/panditService";
-import { FaCalendarAlt, FaUser, FaBook, FaMoneyBillWave, FaSearch, FaTimes, FaChevronLeft, FaChevronRight, FaEdit, FaEye, FaMapMarkerAlt, FaClock } from "react-icons/fa";
+import { FaCalendarAlt, FaUser, FaBook, FaMoneyBillWave, FaSearch, FaTimes, FaChevronLeft, FaChevronRight, FaEdit, FaEye, FaMapMarkerAlt, FaClock, FaWhatsapp } from "react-icons/fa";
 
 const THEME = "#E8621A";
 const THEME_LIGHT = "#fff4ee";
@@ -64,7 +64,7 @@ export default function Bookings() {
     return (
       b.user?.name?.toLowerCase().includes(q) ||
       b.user?.mobile?.toLowerCase().includes(q) ||
-      b.puja?.pujaName?.toLowerCase().includes(q) ||
+      b.puja?.pujaType?.toLowerCase().includes(q) ||
       b.status?.toLowerCase().includes(q) ||
       b._id.toLowerCase().includes(q)
     );
@@ -88,6 +88,8 @@ export default function Bookings() {
     switch (status) {
       case "Pending": return "bg-orange-100 text-orange-600";
       case "Paid": return "bg-green-100 text-green-600";
+      case "AdvancePaid": return "bg-blue-100 text-blue-600";
+      case "FullyPaid": return "bg-green-100 text-green-700";
       case "Failed": return "bg-red-100 text-red-600";
       default: return "bg-gray-100 text-gray-600";
     }
@@ -160,7 +162,7 @@ export default function Bookings() {
             <table className="w-full text-sm min-w-[1000px]">
               <thead>
                 <tr style={{ background: `linear-gradient(135deg, ${THEME}, ${THEME_DARK})` }}>
-                  {["Booking ID", "User Name", "Mobile", "Puja", "Date", "Time Slot", "Amount", "Booking Status", "Payment Status", "Pandit", "Actions"].map((h) => (
+                  {["Booking ID", "User Name", "Mobile", "Puja", "Date", "Time Slot", "Original", "Offer", "Discount", "Total", "Advance", "Remaining", "Booking Status", "Payment Status", "Pandit", "Actions"].map((h) => (
                     <th key={h} className="px-8 py-4 text-left text-xs font-bold text-white whitespace-nowrap tracking-wide">{h}</th>
                   ))}
                 </tr>
@@ -171,12 +173,23 @@ export default function Bookings() {
                     <td className="px-8 py-4 text-gray-500 font-mono text-xs whitespace-nowrap">{b._id}</td>
                     <td className="px-8 py-4 font-semibold text-gray-800 whitespace-nowrap">{b.user?.name || "Unknown"}</td>
                     <td className="px-8 py-4 text-xs text-gray-500 whitespace-nowrap">{b.user?.mobile || "-"}</td>
-                    <td className="px-8 py-4 font-bold whitespace-nowrap" style={{ color: THEME }}>{b.puja?.pujaName || "Unknown"}</td>
+                    <td className="px-8 py-4 font-bold whitespace-nowrap" style={{ color: THEME }}>{b.puja?.pujaType?.trim() || "No Puja"}</td>
                     <td className="px-8 py-4 font-semibold text-gray-700 text-sm whitespace-nowrap">
                       {new Date(b.bookingDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
                     </td>
                     <td className="px-8 py-4 text-xs font-medium text-gray-500 whitespace-nowrap">{b.timeSlot}</td>
+                    <td className="px-8 py-4 font-semibold text-gray-500 whitespace-nowrap line-through">₹{b.originalAmount ?? b.amount}</td>
+                    <td className="px-8 py-4 whitespace-nowrap">
+                      {b.offer ? (
+                        <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-green-100 text-green-700">
+                          {b.offer.title} ({b.offer.discountValue}{b.offer.discountType === "percentage" ? "%" : "₹"} off)
+                        </span>
+                      ) : <span className="text-xs text-gray-300">—</span>}
+                    </td>
+                    <td className="px-8 py-4 font-semibold text-red-500 whitespace-nowrap">-₹{b.discountAmount ?? 0}</td>
                     <td className="px-8 py-4 font-semibold text-gray-700 whitespace-nowrap">₹{b.amount}</td>
+                    <td className="px-8 py-4 font-semibold text-blue-600 whitespace-nowrap">₹{b.advanceAmount}</td>
+                    <td className="px-8 py-4 font-semibold text-orange-500 whitespace-nowrap">₹{b.remainingAmount}</td>
                     <td className="px-8 py-4 whitespace-nowrap">
                       <span className={`px-3 py-1.5 inline-block rounded-full text-[11px] font-bold text-center ${getStatusColor(b.status)}`}>
                         {b.status}
@@ -189,7 +202,10 @@ export default function Bookings() {
                     </td>
                     <td className="px-8 py-4 whitespace-nowrap">
                       {b.pandit ? (
-                        <p className="font-semibold text-green-600 text-xs">✓ {b.pandit.fullName}</p>
+                        <div>
+                          <p className="font-semibold text-green-600 text-xs">✓ {b.pandit.fullName}</p>
+                          <p className="text-[11px] text-gray-400 mt-0.5">{b.pandit.mobileNumber}</p>
+                        </div>
                       ) : (
                         <p className="text-xs text-gray-400 font-semibold italic">Not Assigned</p>
                       )}
@@ -212,6 +228,17 @@ export default function Bookings() {
                           className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:shadow-md hover:scale-110 bg-orange-50 text-orange-600">
                           <FaEdit className="text-sm" />
                         </button>
+                        {b.pandit?.mobileNumber && (
+                          <button
+                            title="Send WhatsApp to Pandit"
+                            onClick={() => {
+                              const msg = `🙏 *PoojaPath - Nayi Booking Aayi Hai!*\n\n*Pandit Ji:* ${b.pandit?.fullName || "-"}\n*Puja:* ${b.puja?.pujaType || "-"}\n*Date:* ${new Date(b.bookingDate).toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" })}\n*Time:* ${b.timeSlot}\n*Address:* ${b.address}\n*Booking ID:* #${b._id}\n\nKripya samay par pahuchen. Dhanyawad! 🙏`;
+                              window.open(`https://wa.me/91${b.pandit.mobileNumber}?text=${encodeURIComponent(msg)}`, "_blank");
+                            }}
+                            className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:shadow-md hover:scale-110 bg-green-50 text-green-600">
+                            <FaWhatsapp className="text-sm" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -285,6 +312,8 @@ export default function Bookings() {
                     onBlur={(e) => e.target.style.borderColor = "#e5e7eb"}
                   >
                     <option value="Pending">Pending</option>
+                    <option value="AdvancePaid">Advance Paid</option>
+                    <option value="FullyPaid">Fully Paid</option>
                     <option value="Paid">Paid</option>
                     <option value="Failed">Failed</option>
                   </select>
@@ -330,7 +359,7 @@ export default function Bookings() {
                 <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 flex-shrink-0"><FaBook /></div>
                 <div>
                   <p className="text-xs text-gray-400">Puja</p>
-                  <p className="text-sm font-bold text-gray-800">{viewData.puja?.pujaName}</p>
+                  <p className="text-sm font-bold text-gray-800">{viewData.puja?.pujaType?.trim() || "No Puja"}</p>
                 </div>
               </div>
 
@@ -367,9 +396,39 @@ export default function Bookings() {
                 <p className="text-sm font-medium text-gray-700 leading-relaxed">{viewData.specialInstructions || "None"}</p>
               </div>
 
-              <div className="flex items-center justify-between p-4 rounded-xl" style={{ backgroundColor: THEME_LIGHT }}>
-                <span className="text-xs font-bold" style={{ color: THEME }}>Total Amount</span>
-                <span className="text-lg font-black" style={{ color: THEME }}>₹{viewData.amount}</span>
+              {viewData.offer && (
+                <div className="p-3 rounded-xl bg-green-50 border border-green-100">
+                  <p className="text-xs text-gray-400 mb-2 font-bold">Offer Applied</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-bold text-green-700">{viewData.offer.title}</span>
+                    <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700">
+                      {viewData.offer.discountValue}{viewData.offer.discountType === "percentage" ? "%" : "₹"} off
+                    </span>
+                  </div>
+                  <p className="text-xs text-green-600 mt-1">You saved ₹{viewData.discountAmount}</p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-xl text-center bg-gray-50 border border-gray-100">
+                  <p className="text-[10px] font-bold text-gray-400 mb-1">Original Price</p>
+                  <p className="text-base font-black text-gray-400 line-through">₹{viewData.originalAmount ?? viewData.amount}</p>
+                </div>
+                <div className="p-3 rounded-xl text-center" style={{ backgroundColor: THEME_LIGHT }}>
+                  <p className="text-[10px] font-bold text-gray-400 mb-1">Final Amount</p>
+                  <p className="text-base font-black" style={{ color: THEME }}>₹{viewData.amount}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-xl text-center bg-blue-50">
+                  <p className="text-[10px] font-bold text-gray-400 mb-1">Advance (25%)</p>
+                  <p className="text-base font-black text-blue-600">₹{viewData.advanceAmount}</p>
+                </div>
+                <div className="p-3 rounded-xl text-center bg-orange-50">
+                  <p className="text-[10px] font-bold text-gray-400 mb-1">Remaining (75%)</p>
+                  <p className="text-base font-black text-orange-500">₹{viewData.remainingAmount}</p>
+                </div>
               </div>
             </div>
           </div>

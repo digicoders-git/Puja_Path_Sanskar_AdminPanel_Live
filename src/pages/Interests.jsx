@@ -51,7 +51,7 @@ export default function Interests() {
     return (
       i.name?.toLowerCase().includes(q) ||
       i.mobile?.toLowerCase().includes(q) ||
-      i.puja?.pujaName?.toLowerCase().includes(q) ||
+      i.puja?.pujaType?.toLowerCase().includes(q) ||
       i.status?.toLowerCase().includes(q)
     );
   });
@@ -160,7 +160,7 @@ export default function Interests() {
                       </a>
                     </td>
                     <td className="px-8 py-4 whitespace-nowrap">
-                      <p className="font-bold" style={{ color: THEME }}>{i.puja?.pujaName || "Unknown Puja"}</p>
+                      <p className="font-bold" style={{ color: THEME }}>{i.puja?.pujaType?.trim() || "No Puja"}</p>
                     </td>
                     <td className="px-8 py-4 text-xs text-gray-500 max-w-[200px] truncate">
                       {i.message || <span className="italic text-gray-300">No message</span>}
@@ -177,7 +177,7 @@ export default function Interests() {
                           adminNotes: i.adminNotes || "",
                           name: i.name,
                           mobile: i.mobile,
-                          puja: i.puja?.pujaName
+                          puja: i.puja?.pujaType?.trim() || "No Puja"
                         })}
                         title="Update & Notes"
                         className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:shadow-md hover:scale-110 bg-orange-50 text-orange-600">
