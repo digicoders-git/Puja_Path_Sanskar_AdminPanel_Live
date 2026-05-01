@@ -6,7 +6,7 @@ export const getEnums = () =>
   fetch(`${BASE}/api/pandits/enums`).then((r) => r.json());
 
 export const getAllPandits = (token) =>
-  fetch(`${BASE}/api/pandits`, { headers: headers(token) }).then((r) => r.json());
+  fetch(`${BASE}/api/pandits`, { headers: headers(token) }).then((r) => r.json()).then((d) => Array.isArray(d) ? d : d.pandits ?? d.data ?? []);
 
 export const createPandit = (token, formData) =>
   fetch(`${BASE}/api/pandits`, { method: "POST", headers: headers(token), body: formData }).then((r) => r.json());

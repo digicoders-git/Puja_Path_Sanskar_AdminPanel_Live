@@ -30,10 +30,8 @@ export default function Bookings() {
     if (bookingData.success) {
       setBookings(bookingData.bookings || []);
     }
-    if (Array.isArray(panditData)) {
-      // Only show active pandits for assignment
-      setPandits(panditData.filter(p => p.isActive));
-    }
+    const panditArr = Array.isArray(panditData) ? panditData : panditData.pandits ?? panditData.data ?? [];
+    setPandits(panditArr.filter(p => p.isActive));
     if (!hideLoading) setLoading(false);
   };
 

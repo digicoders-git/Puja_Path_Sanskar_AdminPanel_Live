@@ -5,7 +5,7 @@ export const getEnums = () =>
   fetch(`${BASE}/api/pujas/enums`).then((r) => r.json());
 
 export const getAllPujas = () =>
-  fetch(`${BASE}/api/pujas`).then((r) => r.json());
+  fetch(`${BASE}/api/pujas`).then((r) => r.json()).then((d) => Array.isArray(d) ? d : d.pujas ?? d.data ?? []);
 
 export const createPuja = (token, formData) =>
   fetch(`${BASE}/api/pujas`, { method: "POST", headers: h(token), body: formData }).then((r) => r.json());
