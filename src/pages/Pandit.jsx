@@ -443,8 +443,6 @@ export default function PanditPage() {
                       required rows={2} placeholder="If same, type 'Same'"
                       className={inputCls + " resize-none"} />
                   </div>
-                  <InputField name="city" label="City" placeholder="e.g. Varanasi" required value={form.city} onChange={handleChange} />
-                  <InputField name="pincode" label="Pincode" placeholder="6 digit code" required value={form.pincode} onChange={handleChange} />
                 </>)}
 
                 {/* Step 2 - Identity & Media */}
