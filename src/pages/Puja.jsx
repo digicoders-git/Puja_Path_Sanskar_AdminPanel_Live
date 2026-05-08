@@ -9,7 +9,11 @@ const THEME = "#E8621A";
 const THEME_LIGHT = "#fff4ee";
 const THEME_DARK = "#c9541a";
 
+<<<<<<< HEAD
 const EMPTY = { pujaName: "", pujaType: "", duration: "", description: "", whatIsIncluded: "", basePrice: 0 };
+=======
+const EMPTY = { pujaType: "", duration: "", description: "", whatIsIncluded: "" };
+>>>>>>> 54351168fd47951aa69da6dcf7208ea9793fd6b4
 
 const inputCls = "w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-orange-400 bg-white text-gray-700";
 const labelCls = "block text-xs font-semibold text-gray-500 mb-1.5";
@@ -90,7 +94,10 @@ export default function PujaPage() {
   const filtered = pujas.filter((p) => {
     const q = search.toLowerCase();
     return (
+<<<<<<< HEAD
       p.pujaName?.toLowerCase().includes(q) ||
+=======
+>>>>>>> 54351168fd47951aa69da6dcf7208ea9793fd6b4
       p.pujaType?.toLowerCase().includes(q) ||
       p.description?.toLowerCase().includes(q)
     );
@@ -144,7 +151,11 @@ export default function PujaPage() {
           <table className="w-full text-sm">
             <thead>
               <tr style={{ background: `linear-gradient(135deg, ${THEME}, ${THEME_DARK})` }}>
+<<<<<<< HEAD
                 {["#", "Image", "Puja Name", "Type", "Price", "Duration", "Status", "Actions"].map((h) => (
+=======
+                {["#", "Image", "Type", "Duration", "What's Included", "Status", "Actions"].map((h) => (
+>>>>>>> 54351168fd47951aa69da6dcf7208ea9793fd6b4
                   <th key={h} className="px-4 py-3.5 text-left text-xs font-bold text-white whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -160,12 +171,20 @@ export default function PujaPage() {
                         : <span className="text-lg">🕉️</span>}
                     </div>
                   </td>
+<<<<<<< HEAD
                   <td className="px-4 py-3 font-bold text-gray-800 whitespace-nowrap">{p.pujaName}</td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <span className="px-2 py-1 rounded-full text-xs font-semibold" style={{ backgroundColor: THEME_LIGHT, color: THEME }}>{p.pujaType}</span>
                   </td>
                   <td className="px-4 py-3 text-orange-600 font-bold whitespace-nowrap">₹{p.basePrice || 0}</td>
                   <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{p.duration}</td>
+=======
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <span className="px-2 py-1 rounded-full text-xs font-semibold" style={{ backgroundColor: THEME_LIGHT, color: THEME }}>{p.pujaType}</span>
+                  </td>
+                  <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{p.duration}</td>
+                  <td className="px-4 py-3 text-gray-500 text-xs max-w-[200px] truncate">{p.whatIsIncluded}</td>
+>>>>>>> 54351168fd47951aa69da6dcf7208ea9793fd6b4
                   <td className="px-4 py-3 whitespace-nowrap">
                     <button onClick={() => handleToggle(p._id)}
                       className="px-3 py-1 rounded-full text-xs font-bold transition-all"
@@ -227,6 +246,7 @@ export default function PujaPage() {
             <form onSubmit={handleSubmit} className="overflow-y-auto flex-1 px-5 py-4">
               <div className="space-y-3">
 
+<<<<<<< HEAD
                 {/* Name + Price */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
@@ -241,6 +261,8 @@ export default function PujaPage() {
                   </div>
                 </div>
 
+=======
+>>>>>>> 54351168fd47951aa69da6dcf7208ea9793fd6b4
                 {/* Type + Duration */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
