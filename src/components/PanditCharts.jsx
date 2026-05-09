@@ -166,7 +166,7 @@ export default function PanditCharts({ pandits }) {
     legend: { enabled: true },
     series: [
       { name: "Basic Puja", data: s.chargesData.map((p) => Number(p.basicPujaCharges) || 0), color: THEME },
-      { name: "Akhand Paath", data: s.chargesData.map((p) => Number(p.akhandPaathCharges) || 0), color: "#2563eb" },
+      { name: "Akhand Path", data: s.chargesData.map((p) => Number(p.akhandPathCharges) || 0), color: "#2563eb" },
       { name: "Per Day", data: s.chargesData.map((p) => Number(p.perDayCharges) || 0), color: "#16a34a" },
     ],
   };

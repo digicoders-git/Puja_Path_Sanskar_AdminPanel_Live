@@ -36,7 +36,7 @@ const EMPTY = {
   alternateNumber: "", emailId: "", dob: "", gender: "",
   currentAddress: "", permanentAddress: "", pincode: "",
   aadharNumber: "", panCard: "", trainingGurukul: "",
-  basicPujaCharges: "", akhandPaathCharges: "", perDayCharges: "", travelCharges: "",
+  basicPujaCharges: "", akhandPathCharges: "", perDayCharges: "", travelCharges: "",
   mantraLevel: "", timeDiscipline: "", dressCode: "", eventHandling: "",
   bhajanKirtan: false, astrology: false, vastu: false, havan: false, corporateExperience: false,
   availableCities: [], travelWillingness: "", maxDistance: "",
