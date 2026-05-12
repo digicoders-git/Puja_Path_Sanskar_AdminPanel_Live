@@ -9,11 +9,7 @@ const THEME = "#E8621A";
 const THEME_LIGHT = "#fff4ee";
 const THEME_DARK = "#c9541a";
 
-<<<<<<< HEAD
 const EMPTY = { pujaName: "", pujaType: "", duration: "", description: "", whatIsIncluded: "", basePrice: 0 };
-=======
-const EMPTY = { pujaType: "", duration: "", description: "", whatIsIncluded: "" };
->>>>>>> 54351168fd47951aa69da6dcf7208ea9793fd6b4
 
 const inputCls = "w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-orange-400 bg-white text-gray-700";
 const labelCls = "block text-xs font-semibold text-gray-500 mb-1.5";
@@ -34,9 +30,13 @@ export default function PujaPage() {
 
   const fetchAll = async () => {
     setLoading(true);
-    const [data, enumData] = await Promise.all([getAllPujas(token), getEnums()]);
-    setPujas(Array.isArray(data) ? data : []);
-    setEnums(enumData);
+    try {
+      const [data, enumData] = await Promise.all([getAllPujas(token), getEnums()]);
+      setPujas(Array.isArray(data) ? data : []);
+      setEnums(enumData);
+    } catch (err) {
+      toast.error("Failed to fetch pujas");
+    }
     setLoading(false);
   };
 
@@ -94,10 +94,7 @@ export default function PujaPage() {
   const filtered = pujas.filter((p) => {
     const q = search.toLowerCase();
     return (
-<<<<<<< HEAD
       p.pujaName?.toLowerCase().includes(q) ||
-=======
->>>>>>> 54351168fd47951aa69da6dcf7208ea9793fd6b4
       p.pujaType?.toLowerCase().includes(q) ||
       p.description?.toLowerCase().includes(q)
     );
@@ -151,11 +148,7 @@ export default function PujaPage() {
           <table className="w-full text-sm">
             <thead>
               <tr style={{ background: `linear-gradient(135deg, ${THEME}, ${THEME_DARK})` }}>
-<<<<<<< HEAD
                 {["#", "Image", "Puja Name", "Type", "Price", "Duration", "Status", "Actions"].map((h) => (
-=======
-                {["#", "Image", "Type", "Duration", "What's Included", "Status", "Actions"].map((h) => (
->>>>>>> 54351168fd47951aa69da6dcf7208ea9793fd6b4
                   <th key={h} className="px-4 py-3.5 text-left text-xs font-bold text-white whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -171,20 +164,12 @@ export default function PujaPage() {
                         : <span className="text-lg">🕉️</span>}
                     </div>
                   </td>
-<<<<<<< HEAD
                   <td className="px-4 py-3 font-bold text-gray-800 whitespace-nowrap">{p.pujaName}</td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <span className="px-2 py-1 rounded-full text-xs font-semibold" style={{ backgroundColor: THEME_LIGHT, color: THEME }}>{p.pujaType}</span>
                   </td>
                   <td className="px-4 py-3 text-orange-600 font-bold whitespace-nowrap">₹{p.basePrice || 0}</td>
                   <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{p.duration}</td>
-=======
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <span className="px-2 py-1 rounded-full text-xs font-semibold" style={{ backgroundColor: THEME_LIGHT, color: THEME }}>{p.pujaType}</span>
-                  </td>
-                  <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{p.duration}</td>
-                  <td className="px-4 py-3 text-gray-500 text-xs max-w-[200px] truncate">{p.whatIsIncluded}</td>
->>>>>>> 54351168fd47951aa69da6dcf7208ea9793fd6b4
                   <td className="px-4 py-3 whitespace-nowrap">
                     <button onClick={() => handleToggle(p._id)}
                       className="px-3 py-1 rounded-full text-xs font-bold transition-all"
@@ -218,12 +203,10 @@ export default function PujaPage() {
         </div>
       )}
 
-      {/* ===== CREATE / EDIT MODAL ===== */}
+      {/* CREATE / EDIT MODAL */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}>
           <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-
-            {/* Header */}
             <div className="px-5 py-4 flex items-center justify-between flex-shrink-0"
               style={{ background: `linear-gradient(135deg, ${THEME}, ${THEME_DARK})` }}>
               <div className="flex items-center gap-3">
@@ -242,12 +225,8 @@ export default function PujaPage() {
               </button>
             </div>
 
-            {/* Form */}
             <form onSubmit={handleSubmit} className="overflow-y-auto flex-1 px-5 py-4">
               <div className="space-y-3">
-
-<<<<<<< HEAD
-                {/* Name + Price */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className={labelCls}>Puja Name *</label>
@@ -257,13 +236,10 @@ export default function PujaPage() {
                   <div>
                     <label className={labelCls}>Base Price (₹) *</label>
                     <input type="text" name="basePrice" value={form.basePrice} onChange={handleChange} required
-                      placeholder="e.g. 2100 or 2100 - 5100" className={inputCls} />
+                      placeholder="e.g. 2100" className={inputCls} />
                   </div>
                 </div>
 
-=======
->>>>>>> 54351168fd47951aa69da6dcf7208ea9793fd6b4
-                {/* Type + Duration */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className={labelCls}>Puja Type *</label>
@@ -277,23 +253,20 @@ export default function PujaPage() {
                   </div>
                 </div>
 
-                {/* Description */}
                 <div>
                   <label className={labelCls}>Description *</label>
                   <textarea name="description" value={form.description} onChange={handleChange} required rows={3}
-                    placeholder="A sacred Hindu ceremony performed with Vedic rituals..."
+                    placeholder="A sacred Hindu ceremony..."
                     className={inputCls + " resize-none"} />
                 </div>
 
-                {/* What's Included */}
                 <div>
                   <label className={labelCls}>What's Included *</label>
                   <textarea name="whatIsIncluded" value={form.whatIsIncluded} onChange={handleChange} required rows={2}
-                    placeholder="Pandit Ji, Samagri Kit, Havan Kund, Flowers..."
+                    placeholder="Pandit Ji, Samagri Kit..."
                     className={inputCls + " resize-none"} />
                 </div>
 
-                {/* Image Upload */}
                 <div>
                   <label className={labelCls}>Puja Image</label>
                   <div className="border-2 border-dashed rounded-xl p-3 bg-gray-50 hover:bg-white transition-colors"
@@ -314,7 +287,6 @@ export default function PujaPage() {
                 </div>
               </div>
 
-              {/* Footer Buttons */}
               <div className="flex gap-3 pt-4 mt-4 border-t border-gray-100">
                 <button type="button" onClick={() => setShowModal(false)}
                   className="flex-1 py-2.5 rounded-xl font-bold text-sm border border-gray-200 text-gray-500 hover:bg-gray-50 transition-all">
@@ -331,12 +303,10 @@ export default function PujaPage() {
         </div>
       )}
 
-      {/* ===== VIEW MODAL ===== */}
+      {/* VIEW MODAL */}
       {viewData && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}>
           <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-
-            {/* Header */}
             <div className="relative flex-shrink-0" style={{ background: `linear-gradient(135deg, ${THEME}, ${THEME_DARK})` }}>
               <div className="px-5 pt-5 pb-8">
                 <div className="flex items-start justify-between">
@@ -347,7 +317,7 @@ export default function PujaPage() {
                         : <span className="text-2xl">🕉️</span>}
                     </div>
                     <div>
-                      <h3 className="text-base font-black text-white">{viewData.pujaType}</h3>
+                      <h3 className="text-base font-black text-white">{viewData.pujaName}</h3>
                       <div className="flex flex-wrap items-center gap-1.5 mt-1">
                         <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-white/20 text-white">{viewData.pujaType}</span>
                         <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-white/20 text-white">⏱ {viewData.duration}</span>
@@ -357,62 +327,31 @@ export default function PujaPage() {
                       </div>
                     </div>
                   </div>
-                  <button onClick={() => setViewData(null)}
-                    className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-white/20 transition-all flex-shrink-0"
-                    style={{ color: "#fff" }}>
-                    <FaTimes className="text-xs" />
-                  </button>
+                  <button onClick={() => setViewData(null)} className="text-white text-xl">✕</button>
                 </div>
               </div>
               <div className="absolute bottom-0 left-0 right-0 h-4 bg-white rounded-t-2xl" />
             </div>
-
-            {/* Body */}
             <div className="overflow-y-auto flex-1 px-5 pb-5 space-y-4">
-
-              {/* Description */}
               <div>
                 <p className="text-xs font-black uppercase tracking-wider mb-2" style={{ color: THEME }}>📖 Description</p>
                 <p className="text-sm text-gray-600 leading-relaxed p-3 rounded-xl bg-gray-50">{viewData.description}</p>
               </div>
-
-              {/* What's Included */}
               <div>
                 <p className="text-xs font-black uppercase tracking-wider mb-2" style={{ color: THEME }}>✅ What's Included</p>
-                <div className="p-3 rounded-xl bg-gray-50 space-y-1.5">
-                  {viewData.whatIsIncluded.split(",").map((item, i) => (
-                    <div key={i} className="flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: THEME }} />
-                      <span className="text-sm text-gray-600">{item.trim()}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Dates */}
-              <div className="grid grid-cols-2 gap-2">
-                <div className="p-3 rounded-xl bg-gray-50">
-                  <p className="text-xs text-gray-400">Created</p>
-                  <p className="text-xs font-semibold text-gray-700">{new Date(viewData.createdAt).toLocaleDateString("en-IN")}</p>
-                </div>
-                <div className="p-3 rounded-xl bg-gray-50">
-                  <p className="text-xs text-gray-400">Updated</p>
-                  <p className="text-xs font-semibold text-gray-700">{new Date(viewData.updatedAt).toLocaleDateString("en-IN")}</p>
-                </div>
+                <p className="text-sm text-gray-600 p-3 rounded-xl bg-gray-50">{viewData.whatIsIncluded}</p>
               </div>
             </div>
-
-            {/* Footer */}
             <div className="px-5 py-4 border-t border-gray-100 flex-shrink-0">
               <button onClick={() => setViewData(null)}
-                className="w-full py-2.5 rounded-xl font-bold text-sm text-white transition-all hover:opacity-90"
+                className="w-full py-2.5 rounded-xl font-bold text-sm text-white"
                 style={{ backgroundColor: THEME }}>Close</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ===== DELETE MODAL ===== */}
+      {/* DELETE MODAL */}
       {deleteId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
           <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl p-6 text-center">
