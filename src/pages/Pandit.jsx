@@ -10,7 +10,7 @@ import { getAllPujas } from "../services/pujaService";
 import { 
   FaEye, FaEdit, FaTrash, FaToggleOn, FaToggleOff, FaPlus, 
   FaWhatsapp, FaTimes, FaSearch, FaInbox, FaVideo, FaImage, 
-  FaCheckCircle, FaUserCircle, FaPhoneAlt, FaFileAlt, FaTag, FaEnvelope 
+  FaCheckCircle, FaUserCircle, FaPhoneAlt, FaFileAlt, FaTag, FaEnvelope, FaStar
 } from "react-icons/fa";
 import PanditCharts from "../components/PanditCharts";
 
@@ -828,32 +828,127 @@ export default function PanditPage() {
                   </div>
 
                   <div>
-                    <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                      <div className="w-1 h-4 rounded-full bg-orange-500"></div> Documents & Media
+                    <h4 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></div> Identity & Document Verification
                     </h4>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="group relative rounded-xl overflow-hidden aspect-video bg-gray-200 border border-gray-100 shadow-sm cursor-pointer" 
-                           onClick={() => window.open(`${import.meta.env.VITE_API_BASE_URL}/${viewData.idProof.replace(/\\/g, "/")}`, "_blank")}>
-                        {viewData.idProof ? (
-                          <>
-                            <img src={`${import.meta.env.VITE_API_BASE_URL}/${viewData.idProof.replace(/\\/g, "/")}`} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
-                              <span className="text-white text-[10px] font-bold flex items-center gap-1"><FaEye /> View Aadhar</span>
+                    
+                    <div className="space-y-5">
+                      {/* Premium ID Card */}
+                      <div className="bg-white rounded-[2rem] border border-gray-100 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.05)] overflow-hidden">
+                        <div className="flex flex-col lg:flex-row">
+                          {/* Left: Document Preview */}
+                          <div className="lg:w-2/5 bg-gray-50/50 p-6 flex flex-col items-center justify-center border-r border-gray-50">
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 w-full text-center">ID Proof Document</p>
+                            <div className="relative group w-full aspect-[4/3] max-w-[240px]">
+                              <div className="absolute inset-0 bg-orange-500/10 blur-2xl rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                              <div className="relative h-full rounded-2xl overflow-hidden border-2 border-white shadow-xl bg-white group-hover:-translate-y-1 transition-all duration-500 cursor-zoom-in"
+                                   onClick={() => viewData.idProof && window.open(`${import.meta.env.VITE_API_BASE_URL}/${viewData.idProof.replace(/\\/g, "/")}`, "_blank")}>
+                                {viewData.idProof ? (
+                                  <>
+                                    <img src={`${import.meta.env.VITE_API_BASE_URL}/${viewData.idProof.replace(/\\/g, "/")}`} className="w-full h-full object-cover" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end justify-center p-4">
+                                      <span className="text-white text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                                        <FaEye size={12} /> View Document
+                                      </span>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <div className="w-full h-full flex flex-col items-center justify-center text-gray-300 bg-gray-50">
+                                    <FaFileAlt className="text-4xl mb-2 opacity-20" />
+                                    <span className="text-[10px] font-black uppercase">No Document</span>
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          </>
-                        ) : <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">No ID Proof</div>}
-                      </div>
-                      <div className="group relative rounded-xl overflow-hidden aspect-video bg-gray-900 border border-gray-800 shadow-sm cursor-pointer"
-                           onClick={() => viewData.introVideo && window.open(`${import.meta.env.VITE_API_BASE_URL}/${viewData.introVideo.replace(/\\/g, "/")}`, "_blank")}>
-                        {viewData.introVideo ? (
-                          <div className="w-full h-full flex flex-col items-center justify-center">
-                            <FaVideo className="text-white/40 text-2xl mb-1" />
-                            <span className="text-white/60 text-[9px] font-black uppercase tracking-widest">Intro Video</span>
-                            <div className="absolute inset-0 bg-orange-500/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
-                               <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-orange-600 shadow-lg"><FaVideo size={12} /></div>
+                            {viewData.idProof && (
+                              <button onClick={() => window.open(`${import.meta.env.VITE_API_BASE_URL}/${viewData.idProof.replace(/\\/g, "/")}`, "_blank")}
+                                      className="mt-4 text-[10px] font-black text-orange-600 uppercase tracking-widest hover:text-orange-700 transition-colors">
+                                Download Original File
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Right: ID Numbers & Details */}
+                          <div className="flex-1 p-6 sm:p-8 flex flex-col justify-center">
+                            <div className="flex items-center gap-2 mb-6">
+                              <div className="w-8 h-8 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center shadow-sm"><FaInbox size={14} /></div>
+                              <h5 className="text-sm font-black text-gray-800 tracking-tight">Verification Particulars</h5>
+                            </div>
+
+                            <div className="space-y-4 mb-8">
+                               <div className="p-5 rounded-[1.5rem] bg-[#fffaf4] border border-orange-100/50 relative overflow-hidden group/box">
+                                  <div className="absolute top-1/2 -translate-y-1/2 right-4 opacity-[0.05] group-hover/box:scale-110 transition-transform duration-500">
+                                    <FaCheckCircle size={50} className="text-orange-900" />
+                                  </div>
+                                  <div className="relative z-10">
+                                    <p className="text-[10px] font-black text-orange-400 uppercase tracking-widest mb-1.5 flex items-center gap-2">
+                                      <div className="w-1.5 h-1.5 rounded-full bg-orange-400" /> Aadhaar Card Number
+                                    </p>
+                                    <p className={`text-xl font-black tracking-widest ${viewData.aadharNumber ? "text-gray-800" : "text-gray-300 italic text-base"}`}>
+                                      {viewData.aadharNumber || "Not Provided"}
+                                    </p>
+                                  </div>
+                               </div>
+                               <div className="p-5 rounded-[1.5rem] bg-blue-50/30 border border-blue-100/50 relative overflow-hidden group/box">
+                                  <div className="absolute top-1/2 -translate-y-1/2 right-4 opacity-[0.05] group-hover/box:scale-110 transition-transform duration-500">
+                                    <FaTag size={50} className="text-blue-900" />
+                                  </div>
+                                  <div className="relative z-10">
+                                    <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1.5 flex items-center gap-2">
+                                      <div className="w-1.5 h-1.5 rounded-full bg-blue-400" /> PAN Card Number
+                                    </p>
+                                    <p className={`text-xl font-black tracking-widest uppercase ${viewData.panCard ? "text-gray-800" : "text-gray-300 italic text-base"}`}>
+                                      {viewData.panCard || "Not Provided"}
+                                    </p>
+                                  </div>
+                               </div>
+                            </div>
+
+                            <div className="flex flex-wrap gap-3">
+                               <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${viewData.idProof ? "bg-green-50 text-green-600 border-green-100 shadow-[0_4px_12px_-4px_rgba(22,163,74,0.3)]" : "bg-red-50 text-red-400 border-red-100"}`}>
+                                  <div className={`w-1.5 h-1.5 rounded-full ${viewData.idProof ? "bg-green-500 animate-pulse" : "bg-red-400"}`} />
+                                  {viewData.idProof ? "Identity Document Verified" : "Document Verification Pending"}
+                                </div>
+                                <div className="flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-orange-50 text-orange-600 border border-orange-100 shadow-[0_4px_12px_-4px_rgba(232,98,26,0.3)]">
+                                  <FaStar size={10} className="fill-orange-500 text-orange-500" /> Trust Score: 100%
+                                </div>
                             </div>
                           </div>
-                        ) : <div className="w-full h-full flex items-center justify-center text-gray-600 text-xs italic">No Video</div>}
+                        </div>
+                      </div>
+
+                      {/* Intro Video Card */}
+                      <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm p-6 sm:p-8">
+                        <div className="flex items-center justify-between mb-6">
+                           <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-2xl bg-gray-900 text-white flex items-center justify-center shadow-lg"><FaVideo size={16} /></div>
+                              <div>
+                                 <h5 className="text-sm font-black text-gray-800 tracking-tight">Introduction Video</h5>
+                                 <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Experience & Self-Intro</p>
+                              </div>
+                           </div>
+                           {viewData.introVideo && <span className="text-[9px] font-black text-green-500 bg-green-50 px-2 py-1 rounded-lg uppercase tracking-widest">Clip Ready</span>}
+                        </div>
+
+                        <div className="group relative rounded-3xl overflow-hidden aspect-video bg-gray-900 border-4 border-white shadow-2xl cursor-pointer transition-transform duration-500 hover:scale-[1.01]"
+                             onClick={() => viewData.introVideo && window.open(`${import.meta.env.VITE_API_BASE_URL}/${viewData.introVideo.replace(/\\/g, "/")}`, "_blank")}>
+                          {viewData.introVideo ? (
+                            <div className="w-full h-full flex flex-col items-center justify-center">
+                              <FaVideo className="text-white/10 text-6xl mb-2 transition-transform group-hover:scale-110 duration-700" />
+                              <div className="absolute inset-0 bg-gradient-to-tr from-orange-600/20 via-transparent to-blue-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                 <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-orange-600 shadow-2xl scale-90 group-hover:scale-100 transition-all duration-500">
+                                    <div className="w-0 h-0 border-t-[10px] border-t-transparent border-l-[16px] border-l-current border-b-[10px] border-b-transparent ml-1"></div>
+                                 </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center text-gray-600 bg-gray-950">
+                              <FaVideo className="text-4xl mb-2 opacity-10" />
+                              <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40">Video Not Uploaded</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
