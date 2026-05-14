@@ -271,7 +271,7 @@ export default function PujaPage() {
                   <label className={labelCls}>Puja Image</label>
                   <div className="border-2 border-dashed rounded-xl p-3 bg-gray-50 hover:bg-white transition-colors"
                     style={{ borderColor: imageFile ? THEME : "#e5e7eb" }}>
-                    {(imageFile || editData?.image) && (
+                    {(imageFile || (editData && editData.image)) && (
                       <img
                         src={imageFile ? URL.createObjectURL(imageFile) : `${import.meta.env.VITE_API_BASE_URL}/${editData.image.replace(/\\/g, "/")}`}
                         className="w-full h-28 rounded-lg object-cover mb-2 border border-orange-100" />
