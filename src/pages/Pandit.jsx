@@ -76,6 +76,33 @@ const CheckField = ({ name, label, checked, onChange }) => (
   </label>
 );
 
+const FilePreview = ({ file, existingPath, type = "image", onRemove }) => {
+  let url = "";
+  if (file) url = URL.createObjectURL(file);
+  else if (existingPath) url = `${import.meta.env.VITE_API_BASE_URL}/${existingPath.replace(/\\/g, "/")}`;
+
+  if (!url) return null;
+
+  return (
+    <div className="relative mt-2 group w-full max-w-[150px]">
+      <div className="rounded-xl overflow-hidden border border-gray-200 shadow-sm bg-gray-50 aspect-video flex items-center justify-center">
+        {type === "image" ? (
+          <img src={url} alt="preview" className="w-full h-full object-cover" />
+        ) : (
+          <video src={url} className="w-full h-full object-cover" />
+        )}
+      </div>
+      {file && (
+        <button 
+          type="button" 
+          onClick={onRemove}
+          className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-[10px] shadow-lg"
+        >✕</button>
+      )}
+    </div>
+  );
+};
+
 export default function PanditPage() {
   const { token } = useAuth();
   const [pandits, setPandits] = useState([]);
@@ -489,11 +516,13 @@ export default function PanditPage() {
 
                   <div>
                     <label className={labelCls}>7. ID Proof Upload</label>
-                    <input type="file" onChange={(e) => setAadharImageFile(e.target.files[0])} className={inputCls} />
+                    <input type="file" onChange={(e) => setAadharImageFile(e.target.files[0])} className={inputCls} accept="image/*" />
+                    <FilePreview file={aadharImageFile} existingPath={form.idProof} onRemove={() => setAadharImageFile(null)} />
                   </div>
                   <div>
                     <label className={labelCls}>8. Photo Upload</label>
-                    <input type="file" onChange={(e) => setProfilePhotoFile(e.target.files[0])} className={inputCls} />
+                    <input type="file" onChange={(e) => setProfilePhotoFile(e.target.files[0])} className={inputCls} accept="image/*" />
+                    <FilePreview file={profilePhotoFile} existingPath={form.profilePhoto} onRemove={() => setProfilePhotoFile(null)} />
                   </div>
 
                   <SelectField name="serviceArea" label="9. Service Area" options={["Within 10 km", "Entire City", "Nearby Districts"]} value={form.serviceArea} onChange={handleChange} />
@@ -523,14 +552,43 @@ export default function PanditPage() {
                   <div>
                     <label className={labelCls}>Intro Video Upload</label>
                     <input type="file" onChange={(e) => setIntroVideoFile(e.target.files[0])} className={inputCls} accept="video/*" />
+                    <FilePreview file={introVideoFile} existingPath={form.introVideo} type="video" onRemove={() => setIntroVideoFile(null)} />
                   </div>
                   <div>
                     <label className={labelCls}>Puja Photos (Multiple)</label>
                     <input type="file" multiple onChange={(e) => setPujaPhotosFiles(Array.from(e.target.files))} className={inputCls} accept="image/*" />
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {form.pujaPhotos?.map((p, idx) => (
+                        <div key={`existing-${idx}`} className="w-12 h-12 rounded-lg overflow-hidden border border-gray-200">
+                          <img src={`${import.meta.env.VITE_API_BASE_URL}/${p.replace(/\\/g, "/")}`} className="w-full h-full object-cover" />
+                        </div>
+                      ))}
+                      {pujaPhotosFiles.map((f, idx) => (
+                        <div key={`new-${idx}`} className="w-12 h-12 rounded-lg overflow-hidden border border-orange-200 relative group">
+                          <img src={URL.createObjectURL(f)} className="w-full h-full object-cover" />
+                          <button type="button" onClick={() => setPujaPhotosFiles(prev => prev.filter((_, i) => i !== idx))}
+                            className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-[8px]">✕</button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                   <div>
                     <label className={labelCls}>Puja Video Clips (Multiple)</label>
                     <input type="file" multiple onChange={(e) => setPujaVideoClipsFiles(Array.from(e.target.files))} className={inputCls} accept="video/*" />
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {form.pujaVideoClips?.map((v, idx) => (
+                        <div key={`existing-vid-${idx}`} className="w-12 h-12 rounded-lg overflow-hidden border border-gray-200 bg-black flex items-center justify-center">
+                          <FaVideo className="text-white/40 text-[10px]" />
+                        </div>
+                      ))}
+                      {pujaVideoClipsFiles.map((f, idx) => (
+                        <div key={`new-vid-${idx}`} className="w-12 h-12 rounded-lg overflow-hidden border border-orange-200 bg-black relative group flex items-center justify-center">
+                          <video src={URL.createObjectURL(f)} className="w-full h-full object-cover" />
+                          <button type="button" onClick={() => setPujaVideoClipsFiles(prev => prev.filter((_, i) => i !== idx))}
+                            className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-[8px]">✕</button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                   <SelectField name="traditionalDress" label="Traditional Dress Confirmation" options={["Yes", "Sometimes", "No"]} value={form.traditionalDress} onChange={handleChange} />
                   <SelectField name="audioClarity" label="Audio Clarity Confirmation" options={["Yes", "Average", "Professional Level"]} value={form.audioClarity} onChange={handleChange} />
@@ -683,6 +741,16 @@ export default function PanditPage() {
                     <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-4">
                       <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Current Address</p><p className="text-xs font-semibold text-gray-600 leading-relaxed">{viewData.currentAddress}</p></div>
                       <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">City / District / State</p><p className="text-xs font-bold text-gray-800">{viewData.city}, {viewData.district}, {viewData.state} - {viewData.pincode}</p></div>
+                      {viewData.availableCities?.length > 0 && (
+                        <div>
+                          <p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Available In Cities</p>
+                          <div className="flex flex-wrap gap-1">
+                            {viewData.availableCities.map((c, idx) => (
+                              <span key={idx} className="px-2 py-0.5 bg-gray-100 text-[9px] font-bold rounded">{c}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -691,10 +759,12 @@ export default function PanditPage() {
                       <div className="w-1 h-4 rounded-full bg-orange-500"></div> Logistics & Travel
                     </h4>
                     <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm grid grid-cols-2 gap-4">
-                      <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Max Distance</p><p className="text-xs font-bold text-gray-800">{viewData.maxDistance} KM</p></div>
-                      <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Emergency Booking</p><span className={`px-2 py-0.5 rounded text-[10px] font-bold ${viewData.emergencyBooking ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"}`}>{viewData.emergencyBooking ? "YES" : "NO"}</span></div>
-                      <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Samagri Arrangement</p><p className="text-xs font-bold text-gray-800">{viewData.samagriArrangement}</p></div>
-                      <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Puja Kit</p><p className="text-xs font-bold text-gray-800">{viewData.pujaKitProvided || viewData.samagriExperience}</p></div>
+                      <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Service Area</p><p className="text-xs font-bold text-gray-800">{viewData.serviceArea || "—"}</p></div>
+                      <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Max Distance</p><p className="text-xs font-bold text-gray-800">{viewData.maxDistance || "—"} KM</p></div>
+                      <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Travel Availability</p><p className="text-xs font-bold text-gray-800">{viewData.travelAvailability || "—"}</p></div>
+                      <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Travel Willingness</p><p className="text-xs font-bold text-gray-800">{viewData.travelWillingness || "—"}</p></div>
+                      <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Samagri Arrangement</p><p className="text-xs font-bold text-gray-800">{viewData.samagriArrangement || "—"}</p></div>
+                      <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Puja Kit / Experience</p><p className="text-xs font-bold text-gray-800">{viewData.samagriExperience || "—"}</p></div>
                     </div>
                   </div>
                 </div>
@@ -725,10 +795,22 @@ export default function PanditPage() {
                       <div className="w-1 h-4 rounded-full bg-orange-500"></div> Skills & Quality
                     </h4>
                     <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm grid grid-cols-2 gap-y-4 gap-x-2">
-                      <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Mantra Level</p><p className="text-xs font-bold text-gray-800">{viewData.mantraLevel}</p></div>
-                      <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Time Discipline</p><p className="text-xs font-bold text-gray-800">{viewData.timeDiscipline}</p></div>
-                      <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Dress Code</p><p className="text-xs font-bold text-gray-800">{viewData.dressCode}</p></div>
-                      <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Veda</p><p className="text-xs font-bold text-gray-800">{viewData.vedaSpecialization}</p></div>
+                      <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Mantra Level</p><p className="text-xs font-bold text-gray-800">{viewData.mantraLevel || "—"}</p></div>
+                      <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Time Discipline</p><p className="text-xs font-bold text-gray-800">{viewData.timeDiscipline || "—"}</p></div>
+                      <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Dress Code</p><p className="text-xs font-bold text-gray-800">{viewData.dressCode || "—"}</p></div>
+                      <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Veda</p><p className="text-xs font-bold text-gray-800">{viewData.vedaSpecialization || "—"}</p></div>
+                      <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Traditional Dress</p><p className="text-xs font-bold text-gray-800">{viewData.traditionalDress || "—"}</p></div>
+                      <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Audio Clarity</p><p className="text-xs font-bold text-gray-800">{viewData.audioClarity || "—"}</p></div>
+                      <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Event Handling</p><p className="text-xs font-bold text-gray-800">{viewData.eventHandling || "—"}</p></div>
+                      <div className="col-span-2">
+                        <p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Live Event Experience</p>
+                        <div className="flex flex-wrap gap-1">
+                          {viewData.liveEventExperience?.map((e, idx) => (
+                            <span key={idx} className="px-2 py-0.5 bg-orange-50 text-orange-600 text-[9px] font-black rounded border border-orange-100">{e}</span>
+                          ))}
+                          {(!viewData.liveEventExperience || viewData.liveEventExperience.length === 0) && <span className="text-[9px] text-gray-400">None</span>}
+                        </div>
+                      </div>
                       <div className="col-span-2 pt-2 flex flex-wrap gap-1.5">
                         {[
                           { l: "Bhajan", v: viewData.bhajanKirtan },
@@ -778,7 +860,43 @@ export default function PanditPage() {
                 </div>
               </div>
 
-              {/* 2. Photo Gallery */}
+              {/* 2. Pricing & Charges */}
+              <div>
+                <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <div className="w-1 h-4 rounded-full bg-orange-500"></div> Pricing & Charges
+                </h4>
+                <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm grid grid-cols-2 gap-4">
+                  <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Basic Puja</p><p className="text-sm font-black text-orange-600">₹{viewData.basicPujaCharges || "—"}</p></div>
+                  <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Akhand Path</p><p className="text-sm font-black text-orange-600">₹{viewData.akhandPathCharges || "—"}</p></div>
+                  <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Per Day</p><p className="text-sm font-black text-orange-600">₹{viewData.perDayCharges || "—"}</p></div>
+                  <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Travel Charges</p><p className="text-sm font-black text-orange-600">₹{viewData.travelCharges || "—"}</p></div>
+                </div>
+              </div>
+
+              {/* 3. Availability & Schedule */}
+              <div>
+                <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <div className="w-1 h-4 rounded-full bg-orange-500"></div> Availability & Schedule
+                </h4>
+                <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+                  <div className="flex justify-between border-b border-gray-50 pb-2"><span className="text-xs text-gray-400 font-bold">Availability Type</span><span className="text-xs font-bold text-gray-700">{viewData.availabilityType || "—"}</span></div>
+                  <div className="flex justify-between border-b border-gray-50 pb-2"><span className="text-xs text-gray-400 font-bold">Available Days</span><span className="text-xs font-bold text-gray-700">{Array.isArray(viewData.availableDays) && viewData.availableDays.length > 0 ? viewData.availableDays.join(", ") : "—"}</span></div>
+                  <div className="flex justify-between"><span className="text-xs text-gray-400 font-bold">Emergency Booking</span><span className={`px-2 py-0.5 rounded text-[10px] font-bold ${viewData.emergencyBooking ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"}`}>{viewData.emergencyBooking ? "YES" : "NO"}</span></div>
+                </div>
+              </div>
+
+              {/* 4. Training & Qualifications */}
+              <div>
+                <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <div className="w-1 h-4 rounded-full bg-orange-500"></div> Training & Qualifications
+                </h4>
+                <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-3">
+                  <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Training / Gurukul</p><p className="text-xs font-semibold text-gray-600">{viewData.trainingGurukul || "—"}</p></div>
+                  <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Media Permission</p><span className={`px-2 py-0.5 rounded text-[10px] font-bold ${viewData.mediaPermission === "Yes" ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"}`}>{viewData.mediaPermission || "—"}</span></div>
+                </div>
+              </div>
+
+              {/* 5. Photo Gallery */}
               {viewData.pujaPhotos?.length > 0 && (
                 <div>
                   <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
@@ -798,7 +916,7 @@ export default function PanditPage() {
                 </div>
               )}
 
-              {/* 3. Video Clips Gallery */}
+              {/* 6. Video Clips Gallery */}
               {viewData.pujaVideoClips?.length > 0 && (
                 <div>
                   <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
@@ -820,27 +938,30 @@ export default function PanditPage() {
                 </div>
               )}
 
-              {/* 4. Payment & Reference */}
+              {/* 7. Contact & Address Details */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                    <div className="w-1 h-4 rounded-full bg-orange-500"></div> Payment Details
+                    <div className="w-1 h-4 rounded-full bg-orange-500"></div> Contact Information
                   </h4>
                   <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-3">
-                    <div className="flex items-center gap-3">
-                       <div className="w-9 h-9 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center font-black text-xs italic">UPI</div>
-                       <div><p className="text-[10px] text-gray-400 font-bold uppercase">UPI ID</p><p className="text-sm font-black text-gray-800">{viewData.upiId || "—"}</p></div>
-                    </div>
+                    <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Alternate Number</p><p className="text-sm font-black text-gray-800">{viewData.alternateNumber || "—"}</p></div>
                     <div className="h-px bg-gray-50"></div>
-                    <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Bank Details</p><p className="text-xs font-bold text-gray-600 italic">{viewData.bankDetails || "N/A"}</p></div>
+                    <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Current Address</p><p className="text-xs font-semibold text-gray-600 leading-relaxed">{viewData.currentAddress || "—"}</p></div>
+                    <div className="h-px bg-gray-50"></div>
+                    <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Permanent Address</p><p className="text-xs font-semibold text-gray-600 leading-relaxed">{viewData.permanentAddress || "—"}</p></div>
+                    <div className="h-px bg-gray-50"></div>
+                    <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Pincode</p><p className="text-sm font-black text-gray-800">{viewData.pincode || "—"}</p></div>
                   </div>
                 </div>
                 <div>
                   <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                    <div className="w-1 h-4 rounded-full bg-orange-500"></div> Reference Info
+                    <div className="w-1 h-4 rounded-full bg-orange-500"></div> Payment & Banking
                   </h4>
                   <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-3">
-                    <div><p className="text-[10px] text-gray-400 font-bold uppercase">Reference Contact</p><p className="text-sm font-black text-gray-800">{viewData.referenceContact || "—"}</p></div>
+                    <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Bank/UPI Details</p><p className="text-xs font-bold text-gray-700 break-all">{viewData.bankUpiDetails || "—"}</p></div>
+                    <div className="h-px bg-gray-50"></div>
+                    <div><p className="text-[10px] text-gray-400 font-bold uppercase mb-1">Bank Details</p><p className="text-xs font-bold text-gray-600 italic">{viewData.bankDetails || "—"}</p></div>
                     <div className="h-px bg-gray-50"></div>
                     <div className="flex items-center gap-2">
                        <FaCheckCircle className="text-green-500 text-xs" />
