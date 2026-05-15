@@ -18,3 +18,13 @@ export const deletePuja = (token, id) =>
 
 export const togglePuja = (token, id) =>
   fetch(`${BASE}/api/pujas/${id}/toggle`, { method: "PATCH", headers: h(token) }).then((r) => r.json());
+
+export const getAllPujaTypes = () =>
+  fetch(`${BASE}/api/puja-types`).then((r) => r.json());
+
+export const createPujaType = (token, name) =>
+  fetch(`${BASE}/api/puja-types`, {
+    method: "POST",
+    headers: { ...h(token), "Content-Type": "application/json" },
+    body: JSON.stringify({ name }),
+  }).then((r) => r.json());

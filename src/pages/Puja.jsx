@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
-import { getAllPujas, createPuja, updatePuja, deletePuja, togglePuja, getEnums } from "../services/pujaService";
+import { getAllPujas, createPuja, updatePuja, deletePuja, togglePuja, getEnums, getAllPujaTypes, createPujaType } from "../services/pujaService";
 import { FaEye, FaTrash, FaEdit, FaPlus, FaTimes, FaSearch, FaInbox } from "react-icons/fa";
 import PujaCharts from "../components/PujaCharts";
 
@@ -19,7 +19,10 @@ export default function PujaPage() {
   const [pujas, setPujas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [enums, setEnums] = useState({});
+  const [pujaTypes, setPujaTypes] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [showTypeModal, setShowTypeModal] = useState(false);
+  const [newTypeName, setNewTypeName] = useState("");
   const [editData, setEditData] = useState(null);
   const [form, setForm] = useState(EMPTY);
   const [imageFile, setImageFile] = useState(null);
@@ -31,9 +34,14 @@ export default function PujaPage() {
   const fetchAll = async () => {
     setLoading(true);
     try {
-      const [data, enumData] = await Promise.all([getAllPujas(token), getEnums()]);
+      const [data, enumData, typesData] = await Promise.all([
+        getAllPujas(token),
+        getEnums(),
+        getAllPujaTypes()
+      ]);
       setPujas(Array.isArray(data) ? data : []);
       setEnums(enumData);
+      setPujaTypes(Array.isArray(typesData) ? typesData : []);
     } catch (err) {
       toast.error("Failed to fetch pujas");
     }
@@ -53,6 +61,29 @@ export default function PujaPage() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleAddType = () => {
+    setNewTypeName("");
+    setShowTypeModal(true);
+  };
+
+  const handleSaveType = async (e) => {
+    e.preventDefault();
+    if (!newTypeName.trim()) return;
+    try {
+      const res = await createPujaType(token, newTypeName.trim());
+      if (res._id) {
+        toast.success("New type added!");
+        setPujaTypes([...pujaTypes, res]);
+        setForm(prev => ({ ...prev, pujaType: res.name }));
+        setShowTypeModal(false);
+      } else {
+        toast.error(res.message || "Failed to add type");
+      }
+    } catch (err) {
+      toast.error("Error adding type");
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -243,8 +274,18 @@ export default function PujaPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className={labelCls}>Puja Type *</label>
-                    <input name="pujaType" value={form.pujaType} onChange={handleChange} required
-                      placeholder="e.g. Wedding, Havan" className={inputCls} />
+                    <div className="flex gap-2">
+                      <select name="pujaType" value={form.pujaType} onChange={handleChange} required className={inputCls}>
+                        <option value="">Select Type</option>
+                        {pujaTypes.map((t) => (
+                          <option key={t._id} value={t.name}>{t.name}</option>
+                        ))}
+                      </select>
+                      <button type="button" onClick={handleAddType} title="Add New Type"
+                        className="px-3 rounded-xl bg-orange-100 text-orange-600 hover:bg-orange-200 transition-colors">
+                        <FaPlus className="text-xs" />
+                      </button>
+                    </div>
                   </div>
                   <div>
                     <label className={labelCls}>Duration *</label>
@@ -364,6 +405,43 @@ export default function PujaPage() {
               <button onClick={handleDelete} className="flex-1 py-2.5 rounded-xl font-bold text-sm text-white bg-red-500 hover:bg-red-600">Delete</button>
               <button onClick={() => setDeleteId(null)} className="flex-1 py-2.5 rounded-xl font-bold text-sm border border-gray-200 text-gray-500">Cancel</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* TYPE MODAL */}
+      {showTypeModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}>
+          <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="px-5 py-4 flex items-center justify-between"
+              style={{ background: `linear-gradient(135deg, ${THEME}, ${THEME_DARK})` }}>
+              <h3 className="text-sm font-bold text-white">Add Puja Type</h3>
+              <button onClick={() => setShowTypeModal(false)} className="text-white/80 hover:text-white">
+                <FaTimes />
+              </button>
+            </div>
+            <form onSubmit={handleSaveType} className="p-5">
+              <label className={labelCls}>Type Name *</label>
+              <input 
+                autoFocus
+                value={newTypeName} 
+                onChange={(e) => setNewTypeName(e.target.value)}
+                placeholder="e.g. Wedding, Havan"
+                className={inputCls + " mb-4"}
+                required
+              />
+              <div className="flex gap-2">
+                <button type="button" onClick={() => setShowTypeModal(false)}
+                  className="flex-1 py-2 rounded-xl text-sm font-bold border border-gray-200 text-gray-500 hover:bg-gray-50">
+                  Cancel
+                </button>
+                <button type="submit"
+                  className="flex-[2] py-2 rounded-xl text-sm font-bold text-white shadow-md transition-all hover:scale-[1.02]"
+                  style={{ backgroundColor: THEME }}>
+                  Save Type
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
