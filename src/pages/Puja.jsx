@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
-import { getAllPujas, createPuja, updatePuja, deletePuja, togglePuja, getEnums, getAllPujaTypes, createPujaType } from "../services/pujaService";
+import { getAllPujas, createPuja, updatePuja, deletePuja, togglePuja, toggleTrendingPuja, getEnums, getAllPujaTypes, createPujaType } from "../services/pujaService";
 import { FaEye, FaTrash, FaEdit, FaPlus, FaTimes, FaSearch, FaInbox } from "react-icons/fa";
 import PujaCharts from "../components/PujaCharts";
 
@@ -9,7 +9,7 @@ const THEME = "#E8621A";
 const THEME_LIGHT = "#fff4ee";
 const THEME_DARK = "#c9541a";
 
-const EMPTY = { pujaName: "", pujaType: "", duration: "", description: "", whatIsIncluded: "", basePrice: 0 };
+const EMPTY = { pujaName: "", pujaType: "", duration: "", description: "", whatIsIncluded: "", basePrice: 0, isTrending: false };
 
 const inputCls = "w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-orange-400 bg-white text-gray-700";
 const labelCls = "block text-xs font-semibold text-gray-500 mb-1.5";
@@ -30,6 +30,7 @@ export default function PujaPage() {
   const [deleteId, setDeleteId] = useState(null);
   const [viewData, setViewData] = useState(null);
   const [search, setSearch] = useState("");
+  const [filterTrending, setFilterTrending] = useState(false);
 
   const fetchAll = async () => {
     setLoading(true);
@@ -59,8 +60,8 @@ export default function PujaPage() {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setForm((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
   };
 
   const handleAddType = () => {
@@ -122,7 +123,16 @@ export default function PujaPage() {
     }
   };
 
+  const handleTrendingToggle = async (id) => {
+    const res = await toggleTrendingPuja(token, id);
+    if (res.message) {
+      toast.success(res.message);
+      setPujas(pujas.map(p => p._id === id ? { ...p, isTrending: !p.isTrending } : p));
+    }
+  };
+
   const filtered = pujas.filter((p) => {
+    if (filterTrending && !p.isTrending) return false;
     const q = search.toLowerCase();
     return (
       p.pujaName?.toLowerCase().includes(q) ||
@@ -150,18 +160,31 @@ export default function PujaPage() {
       {!loading && pujas.length > 0 && <PujaCharts pujas={pujas} />}
 
       {/* Search */}
-      <div className="mb-4 relative">
-        <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 text-sm" />
-        <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by puja name, type, description..."
-          className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none bg-white text-gray-700"
-          onFocus={(e) => e.target.style.borderColor = THEME}
-          onBlur={(e) => e.target.style.borderColor = "#e5e7eb"} />
-        {search && (
-          <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500">
-            <FaTimes className="text-xs" />
-          </button>
-        )}
+      <div className="mb-4 flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 text-sm" />
+          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by puja name, type, description..."
+            className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none bg-white text-gray-700"
+            onFocus={(e) => e.target.style.borderColor = THEME}
+            onBlur={(e) => e.target.style.borderColor = "#e5e7eb"} />
+          {search && (
+            <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500">
+              <FaTimes className="text-xs" />
+            </button>
+          )}
+        </div>
+        <button 
+          onClick={() => setFilterTrending(!filterTrending)}
+          className={`px-4 py-2.5 rounded-xl text-sm font-bold border transition-colors whitespace-nowrap flex items-center justify-center`}
+          style={{ 
+            backgroundColor: filterTrending ? THEME_LIGHT : "white",
+            borderColor: filterTrending ? THEME : "#e5e7eb",
+            color: filterTrending ? THEME : "#6b7280"
+          }}
+        >
+          🔥 Trending {filterTrending && "Only"}
+        </button>
       </div>
 
       {/* Table */}
@@ -179,7 +202,7 @@ export default function PujaPage() {
           <table className="w-full text-sm">
             <thead>
               <tr style={{ background: `linear-gradient(135deg, ${THEME}, ${THEME_DARK})` }}>
-                {["#", "Image", "Puja Name", "Type", "Price", "Duration", "Status", "Actions"].map((h) => (
+                {["#", "Image", "Puja Name", "Type", "Price", "Duration", "Trending", "Status", "Actions"].map((h) => (
                   <th key={h} className="px-4 py-3.5 text-left text-xs font-bold text-white whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -201,6 +224,13 @@ export default function PujaPage() {
                   </td>
                   <td className="px-4 py-3 text-orange-600 font-bold whitespace-nowrap">₹{p.basePrice || 0}</td>
                   <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{p.duration}</td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <button onClick={() => handleTrendingToggle(p._id)}
+                      className="px-3 py-1 rounded-full text-xs font-bold transition-all"
+                      style={{ backgroundColor: p.isTrending ? "#eab30820" : "#9ca3af20", color: p.isTrending ? "#eab308" : "#6b7280" }}>
+                      {p.isTrending ? "🔥 Trending" : "Normal"}
+                    </button>
+                  </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <button onClick={() => handleToggle(p._id)}
                       className="px-3 py-1 rounded-full text-xs font-bold transition-all"
@@ -294,6 +324,11 @@ export default function PujaPage() {
                   </div>
                 </div>
 
+                <div className="flex items-center gap-2 mb-2">
+                  <input type="checkbox" id="isTrending" name="isTrending" checked={form.isTrending} onChange={handleChange} className="w-4 h-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500" />
+                  <label htmlFor="isTrending" className="text-sm font-semibold text-gray-700 cursor-pointer flex items-center gap-1">Mark as Trending <span className="text-orange-500">🔥</span></label>
+                </div>
+
                 <div>
                   <label className={labelCls}>Description *</label>
                   <textarea name="description" value={form.description} onChange={handleChange} required rows={3}
@@ -365,6 +400,11 @@ export default function PujaPage() {
                         <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${viewData.isActive ? "bg-green-400/30 text-green-100" : "bg-red-400/30 text-red-100"}`}>
                           {viewData.isActive ? "Active" : "Inactive"}
                         </span>
+                        {viewData.isTrending && (
+                          <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-orange-400/30 text-orange-100">
+                            🔥 Trending
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>

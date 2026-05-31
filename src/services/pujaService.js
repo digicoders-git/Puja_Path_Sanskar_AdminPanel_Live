@@ -19,6 +19,9 @@ export const deletePuja = (token, id) =>
 export const togglePuja = (token, id) =>
   fetch(`${BASE}/api/pujas/${id}/toggle`, { method: "PATCH", headers: h(token) }).then((r) => r.json());
 
+export const toggleTrendingPuja = (token, id) =>
+  fetch(`${BASE}/api/pujas/${id}/trending`, { method: "PATCH", headers: h(token) }).then((r) => r.json());
+
 export const getAllPujaTypes = () =>
   fetch(`${BASE}/api/puja-types`).then((r) => r.json());
 
