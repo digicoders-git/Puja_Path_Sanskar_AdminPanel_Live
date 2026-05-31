@@ -14,7 +14,7 @@ const Header = memo(({ toggleSidebar, currentPageTitle }) => {
   const { themeColors } = useTheme();
   const [notifOpen, setNotifOpen] = useState(false);
 
-  const avatarSrc = admin?.image ? `${BASE}/${admin.image}` : null;
+  const avatarSrc = admin?.image ? admin.image : null;
   const isDark = themeColors.mode === "dark";
 
   return (

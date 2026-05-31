@@ -79,7 +79,7 @@ const CheckField = ({ name, label, checked, onChange }) => (
 const FilePreview = ({ file, existingPath, type = "image", onRemove }) => {
   let url = "";
   if (file) url = URL.createObjectURL(file);
-  else if (existingPath) url = `${import.meta.env.VITE_API_BASE_URL}/${existingPath.replace(/\\/g, "/")}`;
+  else if (existingPath) url = existingPath;
 
   if (!url) return null;
 
@@ -306,7 +306,7 @@ export default function PanditPage() {
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-gray-100 border-2 border-white shadow-sm overflow-hidden flex-shrink-0">
                         {p.profilePhoto 
-                          ? <img src={`${import.meta.env.VITE_API_BASE_URL}/${p.profilePhoto.replace(/\\/g, "/")}`} className="w-full h-full object-cover" /> 
+                          ? <img src={p.profilePhoto} className="w-full h-full object-cover" /> 
                           : <FaUserCircle className="w-full h-full text-gray-300" />}
                       </div>
                       <div>
@@ -560,7 +560,7 @@ export default function PanditPage() {
                     <div className="flex flex-wrap gap-2 mt-2">
                       {form.pujaPhotos?.map((p, idx) => (
                         <div key={`existing-${idx}`} className="w-12 h-12 rounded-lg overflow-hidden border border-gray-200">
-                          <img src={`${import.meta.env.VITE_API_BASE_URL}/${p.replace(/\\/g, "/")}`} className="w-full h-full object-cover" />
+                          <img src={p} className="w-full h-full object-cover" />
                         </div>
                       ))}
                       {pujaPhotosFiles.map((f, idx) => (
@@ -679,7 +679,7 @@ export default function PanditPage() {
                 <div className="flex items-center gap-5">
                   <div className="w-20 h-20 rounded-2xl bg-white/20 p-1 backdrop-blur-md flex items-center justify-center overflow-hidden border-2 border-white/40 shadow-xl">
                     {viewData.profilePhoto 
-                      ? <img src={`${import.meta.env.VITE_API_BASE_URL}/${viewData.profilePhoto.replace(/\\/g, "/")}`} className="w-full h-full object-cover rounded-xl" /> 
+                      ? <img src={viewData.profilePhoto} className="w-full h-full object-cover rounded-xl" /> 
                       : <FaUserCircle className="text-5xl text-white/50" />}
                   </div>
                   <div>
@@ -842,10 +842,10 @@ export default function PanditPage() {
                             <div className="relative group w-full aspect-[4/3] max-w-[240px]">
                               <div className="absolute inset-0 bg-orange-500/10 blur-2xl rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                               <div className="relative h-full rounded-2xl overflow-hidden border-2 border-white shadow-xl bg-white group-hover:-translate-y-1 transition-all duration-500 cursor-zoom-in"
-                                   onClick={() => viewData.idProof && window.open(`${import.meta.env.VITE_API_BASE_URL}/${viewData.idProof.replace(/\\/g, "/")}`, "_blank")}>
+                                   onClick={() => viewData.idProof && window.open(viewData.idProof, "_blank")}>
                                 {viewData.idProof ? (
                                   <>
-                                    <img src={`${import.meta.env.VITE_API_BASE_URL}/${viewData.idProof.replace(/\\/g, "/")}`} className="w-full h-full object-cover" />
+                                    <img src={viewData.idProof} className="w-full h-full object-cover" />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end justify-center p-4">
                                       <span className="text-white text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
                                         <FaEye size={12} /> View Document
@@ -861,7 +861,7 @@ export default function PanditPage() {
                               </div>
                             </div>
                             {viewData.idProof && (
-                              <button onClick={() => window.open(`${import.meta.env.VITE_API_BASE_URL}/${viewData.idProof.replace(/\\/g, "/")}`, "_blank")}
+                              <button onClick={() => window.open(viewData.idProof, "_blank")}
                                       className="mt-4 text-[10px] font-black text-orange-600 uppercase tracking-widest hover:text-orange-700 transition-colors">
                                 Download Original File
                               </button>
@@ -931,7 +931,7 @@ export default function PanditPage() {
                         </div>
 
                         <div className="group relative rounded-3xl overflow-hidden aspect-video bg-gray-900 border-4 border-white shadow-2xl cursor-pointer transition-transform duration-500 hover:scale-[1.01]"
-                             onClick={() => viewData.introVideo && window.open(`${import.meta.env.VITE_API_BASE_URL}/${viewData.introVideo.replace(/\\/g, "/")}`, "_blank")}>
+                             onClick={() => viewData.introVideo && window.open(viewData.introVideo, "_blank")}>
                           {viewData.introVideo ? (
                             <div className="w-full h-full flex flex-col items-center justify-center">
                               <FaVideo className="text-white/10 text-6xl mb-2 transition-transform group-hover:scale-110 duration-700" />
@@ -1000,8 +1000,8 @@ export default function PanditPage() {
                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                     {viewData.pujaPhotos.map((img, idx) => (
                       <div key={idx} className="group relative rounded-2xl overflow-hidden aspect-square shadow-sm border border-gray-100 cursor-pointer"
-                           onClick={() => window.open(`${import.meta.env.VITE_API_BASE_URL}/${img.replace(/\\/g, "/")}`, "_blank")}>
-                        <img src={`${import.meta.env.VITE_API_BASE_URL}/${img.replace(/\\/g, "/")}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                           onClick={() => window.open(img, "_blank")}>
+                        <img src={img} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-all flex items-end p-3">
                            <span className="text-white text-[9px] font-black uppercase tracking-widest flex items-center gap-1"><FaImage /> Expand</span>
                         </div>
@@ -1020,7 +1020,7 @@ export default function PanditPage() {
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {viewData.pujaVideoClips.map((vid, idx) => (
                       <div key={idx} className="group relative rounded-2xl overflow-hidden aspect-video bg-gray-900 border border-gray-100 cursor-pointer shadow-sm flex items-center justify-center"
-                           onClick={() => window.open(`${import.meta.env.VITE_API_BASE_URL}/${vid.replace(/\\/g, "/")}`, "_blank")}>
+                           onClick={() => window.open(vid, "_blank")}>
                         <div className="flex flex-col items-center">
                            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white mb-1 group-hover:bg-orange-500 group-hover:scale-110 transition-all">
                              <FaVideo size={14} />
