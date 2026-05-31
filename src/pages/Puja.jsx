@@ -14,12 +14,6 @@ const EMPTY = { pujaName: "", pujaType: "", duration: "", description: "", whatI
 const inputCls = "w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-orange-400 bg-white text-gray-700";
 const labelCls = "block text-xs font-semibold text-gray-500 mb-1.5";
 
-const getImageUrl = (path) => {
-  if (!path) return "";
-  if (path.startsWith("http")) return path;
-  return `${import.meta.env.VITE_API_BASE_URL}/${path.replace(/\\/g, "/")}`;
-};
-
 export default function PujaPage() {
   const { token } = useAuth();
   const [pujas, setPujas] = useState([]);
@@ -220,7 +214,7 @@ export default function PujaPage() {
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="w-9 h-9 rounded-xl overflow-hidden flex-shrink-0 bg-orange-50 flex items-center justify-center">
                       {p.image
-                        ? <img src={`${import.meta.env.VITE_API_BASE_URL}/${p.image.replace(/\\/g, "/")}`} className="w-full h-full object-cover" />
+                        ? <img src={p.image} className="w-full h-full object-cover" />
                         : <span className="text-lg">🕉️</span>}
                     </div>
                   </td>
@@ -355,7 +349,7 @@ export default function PujaPage() {
                     style={{ borderColor: imageFile ? THEME : "#e5e7eb" }}>
                     {(imageFile || (editData && editData.image)) && (
                       <img
-                        src={imageFile ? URL.createObjectURL(imageFile) : `${import.meta.env.VITE_API_BASE_URL}/${editData.image.replace(/\\/g, "/")}`}
+                        src={imageFile ? URL.createObjectURL(imageFile) : editData.image}
                         className="w-full h-28 rounded-lg object-cover mb-2 border border-orange-100" />
                     )}
                     <input type="file" accept="image/jpeg,image/jpg,image/png,image/webp"
@@ -395,7 +389,7 @@ export default function PujaPage() {
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-white/30 flex-shrink-0 bg-white/20 flex items-center justify-center">
                       {viewData.image
-                        ? <img src={`${import.meta.env.VITE_API_BASE_URL}/${viewData.image.replace(/\\/g, "/")}`} className="w-full h-full object-cover" />
+                        ? <img src={viewData.image} className="w-full h-full object-cover" />
                         : <span className="text-2xl">🕉️</span>}
                     </div>
                     <div>
