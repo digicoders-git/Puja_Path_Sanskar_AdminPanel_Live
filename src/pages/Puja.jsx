@@ -14,6 +14,12 @@ const EMPTY = { pujaName: "", pujaType: "", duration: "", description: "", whatI
 const inputCls = "w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-orange-400 bg-white text-gray-700";
 const labelCls = "block text-xs font-semibold text-gray-500 mb-1.5";
 
+const getImageUrl = (path) => {
+  if (!path) return "";
+  if (path.startsWith("http")) return path;
+  return `${import.meta.env.VITE_API_BASE_URL}/${path.replace(/\\/g, "/")}`;
+};
+
 export default function PujaPage() {
   const { token } = useAuth();
   const [pujas, setPujas] = useState([]);
