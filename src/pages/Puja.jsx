@@ -9,7 +9,7 @@ const THEME = "#E8621A";
 const THEME_LIGHT = "#fff4ee";
 const THEME_DARK = "#c9541a";
 
-const EMPTY = { pujaName: "", pujaType: "", duration: "", description: "", whatIsIncluded: "", basePrice: 0, isTrending: false };
+const EMPTY = { pujaName: "", pujaType: "", duration: "", description: "", whatIsIncluded: "", basePrice: 0, isTrending: false, shortDescription: "", benefits: "", requiredMaterials: "", auspiciousTime: "" };
 
 const inputCls = "w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-orange-400 bg-white text-gray-700";
 const labelCls = "block text-xs font-semibold text-gray-500 mb-1.5";
@@ -344,6 +344,30 @@ export default function PujaPage() {
                 </div>
 
                 <div>
+                  <label className={labelCls}>Short Description (Subtitle)</label>
+                  <textarea name="shortDescription" value={form.shortDescription} onChange={handleChange} rows={2}
+                    placeholder="e.g. पितरों की शांति हेतु किया जाने वाला संस्कार।"
+                    className={inputCls + " resize-none"} />
+                </div>
+                <div>
+                  <label className={labelCls}>Benefits (लाभ)</label>
+                  <textarea name="benefits" value={form.benefits} onChange={handleChange} rows={2}
+                    placeholder="e.g. सुख और समृद्धि की प्राप्ति, मनोकामना पूर्ति"
+                    className={inputCls + " resize-none"} />
+                </div>
+                <div>
+                  <label className={labelCls}>Required Materials (आवश्यक सामग्री)</label>
+                  <textarea name="requiredMaterials" value={form.requiredMaterials} onChange={handleChange} rows={2}
+                    placeholder="e.g. पूजा सामग्री, फूल, फल, धूप, दीप"
+                    className={inputCls + " resize-none"} />
+                </div>
+                <div>
+                  <label className={labelCls}>Auspicious Time (शुभ मुहूर्त)</label>
+                  <input name="auspiciousTime" value={form.auspiciousTime} onChange={handleChange}
+                    placeholder="e.g. शुभ मुहूर्त देखकर" className={inputCls} />
+                </div>
+
+                <div>
                   <label className={labelCls}>Puja Image</label>
                   <div className="border-2 border-dashed rounded-xl p-3 bg-gray-50 hover:bg-white transition-colors"
                     style={{ borderColor: imageFile ? THEME : "#e5e7eb" }}>
@@ -422,6 +446,30 @@ export default function PujaPage() {
                 <p className="text-xs font-black uppercase tracking-wider mb-2" style={{ color: THEME }}>✅ What's Included</p>
                 <p className="text-sm text-gray-600 p-3 rounded-xl bg-gray-50">{viewData.whatIsIncluded}</p>
               </div>
+              {viewData.shortDescription && (
+                <div>
+                  <p className="text-xs font-black uppercase tracking-wider mb-2" style={{ color: THEME }}>📝 Short Description</p>
+                  <p className="text-sm text-gray-600 p-3 rounded-xl bg-gray-50">{viewData.shortDescription}</p>
+                </div>
+              )}
+              {viewData.benefits && (
+                <div>
+                  <p className="text-xs font-black uppercase tracking-wider mb-2" style={{ color: THEME }}>✨ Benefits</p>
+                  <p className="text-sm text-gray-600 p-3 rounded-xl bg-gray-50 whitespace-pre-wrap">{viewData.benefits}</p>
+                </div>
+              )}
+              {viewData.requiredMaterials && (
+                <div>
+                  <p className="text-xs font-black uppercase tracking-wider mb-2" style={{ color: THEME }}>🛒 Required Materials</p>
+                  <p className="text-sm text-gray-600 p-3 rounded-xl bg-gray-50 whitespace-pre-wrap">{viewData.requiredMaterials}</p>
+                </div>
+              )}
+              {viewData.auspiciousTime && (
+                <div>
+                  <p className="text-xs font-black uppercase tracking-wider mb-2" style={{ color: THEME }}>📅 Auspicious Time</p>
+                  <p className="text-sm text-gray-600 p-3 rounded-xl bg-gray-50">{viewData.auspiciousTime}</p>
+                </div>
+              )}
             </div>
             <div className="px-5 py-4 border-t border-gray-100 flex-shrink-0">
               <button onClick={() => setViewData(null)}
