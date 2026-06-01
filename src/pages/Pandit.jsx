@@ -1065,6 +1065,50 @@ export default function PanditPage() {
                   </div>
                 </div>
               </div>
+
+              {/* 8. Reviews & Ratings */}
+              <div>
+                <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2 justify-between">
+                  <div className="flex items-center gap-2"><div className="w-1 h-4 rounded-full bg-orange-500"></div> Reviews & Ratings</div>
+                  {viewData.totalReviews > 0 && (
+                    <span className="text-[10px] font-bold bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <FaStar /> {viewData.averageRating} ({viewData.totalReviews} Reviews)
+                    </span>
+                  )}
+                </h4>
+                <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+                  {viewData.reviews && viewData.reviews.length > 0 ? (
+                    viewData.reviews.map((r, idx) => (
+                      <div key={idx} className="border-b border-gray-50 pb-4 last:border-0 last:pb-0">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 text-[10px] font-bold">
+                              {r.user?.name ? r.user.name.charAt(0).toUpperCase() : "U"}
+                            </div>
+                            <div>
+                              <p className="text-xs font-bold text-gray-700">{r.user?.name || "User"}</p>
+                              <div className="flex items-center text-[10px] text-orange-400">
+                                {Array.from({ length: 5 }).map((_, i) => (
+                                  <span key={i} className={i < r.rating ? "text-orange-500" : "text-gray-200"}>★</span>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                          <p className="text-[9px] text-gray-400">{new Date(r.createdAt).toLocaleDateString()}</p>
+                        </div>
+                        <p className="text-xs text-gray-600 leading-relaxed mb-2">{r.comment}</p>
+                        {r.image && (
+                          <div className="w-20 h-20 rounded-lg overflow-hidden border border-gray-200 cursor-pointer" onClick={() => window.open(r.image, "_blank")}>
+                            <img src={r.image} className="w-full h-full object-cover" />
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-gray-400 italic text-center py-4">No reviews yet</p>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Modal Footer */}
