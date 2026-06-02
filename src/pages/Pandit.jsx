@@ -124,6 +124,7 @@ export default function PanditPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const PAGE_SIZE = 10;
   const [pujasList, setPujasList] = useState([]);
+  const [pujaSearch, setPujaSearch] = useState("");
   
   const { inputRef: addressInputRef, place: selectedPlace } = useGooglePlacesAutocomplete();
 
@@ -610,24 +611,37 @@ export default function PanditPage() {
                   <SelectField name="vedaSpecialization" label="Veda Specialization" options={enums.vedaSpecialization || []} value={form.vedaSpecialization} onChange={handleChange} />
                   <div className="sm:col-span-2">
                     <label className={labelCls}>Select Pujas You Perform</label>
+                    <input 
+                      type="text" 
+                      placeholder="Search pujas..." 
+                      value={pujaSearch} 
+                      onChange={(e) => setPujaSearch(e.target.value)} 
+                      className="w-full px-3 py-2 mb-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-orange-400 bg-white text-gray-700" 
+                    />
                     <div className="space-y-2 max-h-64 overflow-y-auto p-1 border rounded-xl">
-                      {pujasList.map((puja) => {
+                      {pujasList.filter(p => (p.pujaName || "").toLowerCase().includes((pujaSearch || "").toLowerCase())).map((puja) => {
                         const selection = form.selectedPujas.find((s) => s.puja === puja._id);
                         const isSelected = !!selection;
                         return (
                           <div key={puja._id} className={`p-3 rounded-xl border ${isSelected ? "border-orange-400 bg-orange-50" : "bg-white"}`}>
                             <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3 cursor-pointer" onClick={() => {
-                                let updated = isSelected ? form.selectedPujas.filter(s => s.puja !== puja._id) : [...form.selectedPujas, { puja: puja._id, price: 0 }];
+                              <div className="flex items-center gap-3 cursor-pointer flex-1" onClick={() => {
+                                let updated = isSelected ? form.selectedPujas.filter(s => s.puja !== puja._id) : [...form.selectedPujas, { puja: puja._id, price: puja.basePrice || 0 }];
                                 setForm(prev => ({ ...prev, selectedPujas: updated }));
                               }}>
-                                <div className={`w-5 h-5 rounded flex items-center justify-center ${isSelected ? "bg-orange-500" : "bg-gray-200"}`}>{isSelected && "✓"}</div>
-                                <span className="text-sm font-bold">{puja.pujaType}</span>
+                                <div className={`w-5 h-5 flex-shrink-0 rounded flex items-center justify-center ${isSelected ? "bg-orange-500" : "bg-gray-200"}`}>{isSelected && <span className="text-white text-xs">✓</span>}</div>
+                                <div>
+                                  <span className="text-sm font-bold block text-gray-800">{puja.pujaName}</span>
+                                  <span className="text-[10px] text-gray-500 font-medium">Type: {puja.pujaType} • Default Price: ₹{puja.basePrice || 0}</span>
+                                </div>
                               </div>
-                              {isSelected && <input type="number" value={selection.price} onChange={(e) => {
-                                const updated = form.selectedPujas.map(s => s.puja === puja._id ? { ...s, price: e.target.value } : s);
-                                setForm(prev => ({ ...prev, selectedPujas: updated }));
-                              }} className="w-24 p-1 border rounded text-xs" placeholder="Price" />}
+                              {isSelected && <div className="flex items-center gap-2">
+                                <span className="text-xs font-semibold text-gray-500">₹</span>
+                                <input type="number" value={selection.price} onChange={(e) => {
+                                  const updated = form.selectedPujas.map(s => s.puja === puja._id ? { ...s, price: e.target.value } : s);
+                                  setForm(prev => ({ ...prev, selectedPujas: updated }));
+                                }} className="w-24 px-2 py-1.5 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-orange-400" placeholder="Price" />
+                              </div>}
                             </div>
                           </div>
                         );
