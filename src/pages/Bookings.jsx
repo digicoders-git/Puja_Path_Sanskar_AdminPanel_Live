@@ -162,7 +162,7 @@ export default function Bookings() {
             <table className="w-full text-sm min-w-[1000px]">
               <thead>
                 <tr style={{ background: `linear-gradient(135deg, ${THEME}, ${THEME_DARK})` }}>
-                  {["Booking ID", "User Name", "Mobile", "Puja", "Date", "Time Slot", "Original", "Offer", "Discount", "Total", "Advance", "Remaining", "Booking Status", "Payment Status", "Pandit", "Actions"].map((h) => (
+                  {["Booking ID", "User Name", "Mobile", "Puja", "Date", "Time Slot", "Samagri Option", "Original", "Offer", "Discount", "Total", "Advance", "Remaining", "Booking Status", "Payment Status", "Pandit", "Actions"].map((h) => (
                     <th key={h} className="px-8 py-4 text-left text-xs font-bold text-white whitespace-nowrap tracking-wide">{h}</th>
                   ))}
                 </tr>
@@ -178,6 +178,19 @@ export default function Bookings() {
                       {new Date(b.bookingDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
                     </td>
                     <td className="px-8 py-4 text-xs font-medium text-gray-500 whitespace-nowrap">{b.timeSlot}</td>
+                    <td className="px-8 py-4 text-xs font-medium whitespace-nowrap">
+                      {b.samagriOption === "Basic" ? (
+                        <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-orange-100 text-orange-700">
+                          Basic (₹500)
+                        </span>
+                      ) : b.samagriOption === "Premium" ? (
+                        <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-purple-100 text-purple-700">
+                          Premium (₹800)
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">—</span>
+                      )}
+                    </td>
                     <td className="px-8 py-4 font-semibold text-gray-500 whitespace-nowrap line-through">₹{b.originalAmount ?? b.amount}</td>
                     <td className="px-8 py-4 whitespace-nowrap">
                       {b.offer ? (
@@ -389,6 +402,15 @@ export default function Bookings() {
               <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
                 <p className="text-xs text-gray-400 mb-1 flex items-center gap-1"><FaMapMarkerAlt /> Address</p>
                 <p className="text-sm font-medium text-gray-700 leading-relaxed">{viewData.address}</p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                <p className="text-xs text-gray-400 mb-1">Samagri Option</p>
+                <p className="text-sm font-bold text-gray-800">
+                  {viewData.samagriOption === "Basic" ? "Basic (+₹500 - Samagri mangwayein)" :
+                   viewData.samagriOption === "Premium" ? "Premium (+₹800 - Included Package)" :
+                   "None"}
+                </p>
               </div>
 
               <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
