@@ -301,7 +301,7 @@ export default function OffersPage() {
                             onChange={() => handlePujaCheck(p._id)}
                             className="accent-orange-500"
                           />
-                          <span className="text-xs text-gray-700 font-medium">{p.pujaType}</span>
+                          <span className="text-xs text-gray-700 font-medium">{p.pujaName || p.pujaType}</span>
                         </label>
                       ))}
                     </div>

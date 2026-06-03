@@ -64,7 +64,7 @@ export default function Bookings() {
     return (
       b.user?.name?.toLowerCase().includes(q) ||
       b.user?.mobile?.toLowerCase().includes(q) ||
-      b.puja?.pujaType?.toLowerCase().includes(q) ||
+      (b.puja?.pujaName || b.puja?.pujaType)?.toLowerCase().includes(q) ||
       b.status?.toLowerCase().includes(q) ||
       b._id.toLowerCase().includes(q)
     );
@@ -173,7 +173,7 @@ export default function Bookings() {
                     <td className="px-8 py-4 text-gray-500 font-mono text-xs whitespace-nowrap">{b._id}</td>
                     <td className="px-8 py-4 font-semibold text-gray-800 whitespace-nowrap">{b.user?.name || "Unknown"}</td>
                     <td className="px-8 py-4 text-xs text-gray-500 whitespace-nowrap">{b.user?.mobile || "-"}</td>
-                    <td className="px-8 py-4 font-bold whitespace-nowrap" style={{ color: THEME }}>{b.puja?.pujaType?.trim() || "No Puja"}</td>
+                    <td className="px-8 py-4 font-bold whitespace-nowrap" style={{ color: THEME }}>{(b.puja?.pujaName || b.puja?.pujaType)?.trim() || "No Puja"}</td>
                     <td className="px-8 py-4 font-semibold text-gray-700 text-sm whitespace-nowrap">
                       {new Date(b.bookingDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
                     </td>
@@ -245,7 +245,7 @@ export default function Bookings() {
                           <button
                             title="Send WhatsApp to Pandit"
                             onClick={() => {
-                              const msg = `🙏 *PoojaPath - Nayi Booking Aayi Hai!*\n\n*Pandit Ji:* ${b.pandit?.fullName || "-"}\n*Puja:* ${b.puja?.pujaType || "-"}\n*Date:* ${new Date(b.bookingDate).toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" })}\n*Time:* ${b.timeSlot}\n*Address:* ${b.address}\n*Booking ID:* #${b._id}\n\nKripya samay par pahuchen. Dhanyawad! 🙏`;
+                              const msg = `🙏 *PoojaPath - Nayi Booking Aayi Hai!*\n\n*Pandit Ji:* ${b.pandit?.fullName || "-"}\n*Puja:* ${b.puja?.pujaName || b.puja?.pujaType || "-"}\n*Date:* ${new Date(b.bookingDate).toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" })}\n*Time:* ${b.timeSlot}\n*Address:* ${b.address}\n*Booking ID:* #${b._id}\n\nKripya samay par pahuchen. Dhanyawad! 🙏`;
                               window.open(`https://wa.me/91${b.pandit.mobileNumber}?text=${encodeURIComponent(msg)}`, "_blank");
                             }}
                             className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:shadow-md hover:scale-110 bg-green-50 text-green-600">
@@ -372,7 +372,7 @@ export default function Bookings() {
                 <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 flex-shrink-0"><FaBook /></div>
                 <div>
                   <p className="text-xs text-gray-400">Puja</p>
-                  <p className="text-sm font-bold text-gray-800">{viewData.puja?.pujaType?.trim() || "No Puja"}</p>
+                  <p className="text-sm font-bold text-gray-800">{(viewData.puja?.pujaName || viewData.puja?.pujaType)?.trim() || "No Puja"}</p>
                 </div>
               </div>
 

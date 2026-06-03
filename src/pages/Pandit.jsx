@@ -795,7 +795,7 @@ export default function PanditPage() {
                         <div key={idx} className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-lg bg-orange-50 text-orange-500 flex items-center justify-center text-xs font-bold">{idx + 1}</div>
-                            <p className="text-xs font-bold text-gray-700">{s.puja?.pujaType || "Puja Service"}</p>
+                            <p className="text-xs font-bold text-gray-700">{s.puja?.pujaName || s.puja?.pujaType || "Puja Service"}</p>
                           </div>
                           <p className="text-sm font-black text-orange-600">₹{s.price}</p>
                         </div>
