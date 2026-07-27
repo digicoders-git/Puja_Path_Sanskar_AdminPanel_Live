@@ -21,7 +21,7 @@ const base = {
 };
 
 export default function Dashboard() {
-  const { token } = useAuth();
+  const { token, logout } = useAuth();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -30,12 +30,15 @@ export default function Dashboard() {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => {
-        if (!r.ok) throw new Error('Failed to fetch dashboard data');
+        if (!r.ok) {
+          if (r.status === 401) logout();
+          throw new Error('Failed to fetch dashboard data');
+        }
         return r.json();
       })
       .then((d) => { setData(d); setLoading(false); })
       .catch(() => { setData(null); setLoading(false); });
-  }, [token]);
+  }, [token, logout]);
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
