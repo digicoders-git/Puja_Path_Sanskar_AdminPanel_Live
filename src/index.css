@@ -10,3 +10,15 @@ body {
 .pac-container {
   z-index: 9999 !important;
 }
+
+/* Make interactive elements and hover states show a pointer cursor globally */
+[class*="hover:bg-"],
+[class*="hover:shadow"],
+[class*="hover:text-"],
+[class*="hover:scale"],
+tr, 
+button,
+[role="button"],
+select {
+  cursor: pointer;
+}
