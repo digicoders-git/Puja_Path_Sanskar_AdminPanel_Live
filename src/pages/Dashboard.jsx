@@ -68,6 +68,11 @@ export default function Dashboard() {
 
   // ── CHARTS ──
 
+  const formatBookingId = (id) => {
+    if (!id) return "-";
+    return `PP-${id.slice(-6).toUpperCase()}`;
+  };
+
   // 1. Donut — Active vs Inactive Pandits
   const c1 = {
     ...base,
@@ -323,10 +328,10 @@ export default function Dashboard() {
             {data.recentBookings?.map((b) => (
               <div key={b._id} className="flex items-center gap-3 px-4 py-3 hover:bg-green-50 transition-colors">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 bg-green-50 text-green-600 font-bold text-sm">
-                  {b.puja?.pujaName?.charAt(0) || "B"}
+                  {formatBookingId(b._id).replace('PP-', '')}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-800 truncate">{b.puja?.pujaName || "Unknown Puja"}</p>
+                  <p className="text-sm font-semibold text-gray-800 truncate">{b.puja?.pujaName || "Unknown Puja"} ({formatBookingId(b._id)})</p>
                   <p className="text-xs text-gray-400 truncate">{b.user?.name || "Unknown"} • ₹{b.amount}</p>
                 </div>
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold flex-shrink-0 ${b.status === 'Confirmed' || b.status === 'Completed' ? "bg-green-100 text-green-600" : b.status === 'Cancelled' ? "bg-red-100 text-red-500" : "bg-orange-100 text-orange-600"}`}>

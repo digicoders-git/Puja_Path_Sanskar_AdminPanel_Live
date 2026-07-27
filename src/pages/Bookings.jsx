@@ -66,7 +66,8 @@ export default function Bookings() {
       b.user?.mobile?.toLowerCase().includes(q) ||
       (b.puja?.pujaName || b.puja?.pujaType)?.toLowerCase().includes(q) ||
       b.status?.toLowerCase().includes(q) ||
-      b._id.toLowerCase().includes(q)
+      b._id.toLowerCase().includes(q) ||
+      (`PP-${b._id.slice(-6).toUpperCase()}`).toLowerCase().includes(q)
     );
   });
 
@@ -93,6 +94,11 @@ export default function Bookings() {
       case "Failed": return "bg-red-100 text-red-600";
       default: return "bg-gray-100 text-gray-600";
     }
+  };
+
+  const formatBookingId = (id) => {
+    if (!id) return "-";
+    return `PP-${id.slice(-6).toUpperCase()}`;
   };
 
   return (
@@ -170,7 +176,7 @@ export default function Bookings() {
               <tbody>
                 {paginated.map((b) => (
                   <tr key={b._id} className="border-t border-gray-50 transition-colors hover:bg-orange-50">
-                    <td className="px-8 py-4 text-gray-500 font-mono text-xs whitespace-nowrap">{b._id}</td>
+                    <td className="px-8 py-4 text-gray-800 font-bold font-mono text-xs whitespace-nowrap">{formatBookingId(b._id)}</td>
                     <td className="px-8 py-4 font-semibold text-gray-800 whitespace-nowrap">{b.user?.name || "Unknown"}</td>
                     <td className="px-8 py-4 text-xs text-gray-500 whitespace-nowrap">{b.user?.mobile || "-"}</td>
                     <td className="px-8 py-4 font-bold whitespace-nowrap" style={{ color: THEME }}>{(b.puja?.pujaName || b.puja?.pujaType)?.trim() || "No Puja"}</td>
@@ -245,7 +251,7 @@ export default function Bookings() {
                           <button
                             title="Send WhatsApp to Pandit"
                             onClick={() => {
-                              const msg = `🙏 *PoojaPath - Nayi Booking Aayi Hai!*\n\n*Pandit Ji:* ${b.pandit?.fullName || "-"}\n*Puja:* ${b.puja?.pujaName || b.puja?.pujaType || "-"}\n*Date:* ${new Date(b.bookingDate).toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" })}\n*Time:* ${b.timeSlot}\n*Address:* ${b.address}\n*Booking ID:* #${b._id}\n\nKripya samay par pahuchen. Dhanyawad! 🙏`;
+                              const msg = `🙏 *PoojaPath - Nayi Booking Aayi Hai!*\n\n*Pandit Ji:* ${b.pandit?.fullName || "-"}\n*Puja:* ${b.puja?.pujaName || b.puja?.pujaType || "-"}\n*Date:* ${new Date(b.bookingDate).toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" })}\n*Time:* ${b.timeSlot}\n*Address:* ${b.address}\n*Booking ID:* ${formatBookingId(b._id)}\n\nKripya samay par pahuchen. Dhanyawad! 🙏`;
                               window.open(`https://wa.me/91${b.pandit.mobileNumber}?text=${encodeURIComponent(msg)}`, "_blank");
                             }}
                             className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:shadow-md hover:scale-110 bg-green-50 text-green-600">
