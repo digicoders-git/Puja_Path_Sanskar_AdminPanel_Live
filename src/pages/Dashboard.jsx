@@ -29,9 +29,12 @@ export default function Dashboard() {
     fetch(`${BASE}/api/dashboard`, {
       headers: { Authorization: `Bearer ${token}` },
     })
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error('Failed to fetch dashboard data');
+        return r.json();
+      })
       .then((d) => { setData(d); setLoading(false); })
-      .catch(() => setLoading(false));
+      .catch(() => { setData(null); setLoading(false); });
   }, [token]);
 
   if (loading) return (
