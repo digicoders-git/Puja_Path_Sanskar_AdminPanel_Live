@@ -1,10 +1,12 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { Suspense } from "react";
+import { Suspense, lazy } from "react";
 import { useAuth } from "./context/AuthContext";
 import Login from "./pages/Login";
 import DashboardLayout from "./components/DashboardLayout";
 import { Toaster } from "sonner";
 import routes from "./route/SidebarRaoute";
+
+const ViewAstrologer = lazy(() => import("./pages/ViewAstrologer"));
 
 const LoadingSpinner = () => (
   <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -41,7 +43,8 @@ function App() {
                 }
               />
             ))}
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/astrologers/view/:id" element={<Suspense fallback={<LoadingSpinner />}><ViewAstrologer /></Suspense>} />
+            <Route path="*" element={<div>404 Not Found. Path: {window.location.pathname}</div>} />
           </Route>
         ) : (
           <Route path="*" element={<Navigate to="/login" replace />} />
