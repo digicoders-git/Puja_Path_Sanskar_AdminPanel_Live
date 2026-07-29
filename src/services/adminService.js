@@ -13,3 +13,11 @@ export const changePassword = (token, body) =>
     headers: { ...h(token), "Content-Type": "application/json" },
     body: JSON.stringify(body),
   }).then((r) => r.json());
+
+export const sendNotification = (token, body) =>
+  fetch(`${BASE}/api/admin/send-notification`, {
+    method: "POST",
+    headers: { ...h(token), "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  }).then((r) => r.json());
+
