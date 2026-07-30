@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import Swal from "sweetalert2";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
 import { FaBell, FaPaperPlane, FaMagic, FaUser } from "react-icons/fa";
@@ -13,7 +14,9 @@ export default function Notifications() {
   const { token } = useAuth();
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const [image, setImage] = useState(null);
   const [userId, setUserId] = useState("all");
+  const [category, setCategory] = useState("general");
   const [loading, setLoading] = useState(false);
   const [triggerLoading, setTriggerLoading] = useState(false);
   const [users, setUsers] = useState([]);
@@ -35,7 +38,17 @@ export default function Notifications() {
   };
 
   const handleTriggerRashi = async () => {
-    if (window.confirm("Are you sure you want to trigger today's daily Rashi notifications now?")) {
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "Do you want to trigger today's daily Rashi notifications now?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: THEME,
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, send them!'
+    });
+
+    if (result.isConfirmed) {
       setTriggerLoading(true);
       try {
         const data = await triggerRashiNotifications(token);
@@ -62,12 +75,23 @@ export default function Notifications() {
 
     setLoading(true);
     try {
-      const data = await sendNotification(token, { title, body, userId });
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("body", body);
+      formData.append("userId", userId);
+      formData.append("category", category);
+      if (image) {
+        formData.append("image", image);
+      }
+
+      const data = await sendNotification(token, formData);
 
       if (data.success) {
         toast.success(`Notification sent! Success: ${data.successCount}, Failed: ${data.failureCount}`);
         setTitle("");
         setBody("");
+        setImage(null);
+        setCategory("general");
         setUserId("all");
       } else {
         toast.error(data.message || "Failed to send notification.");
@@ -186,19 +210,47 @@ export default function Notifications() {
                 </div>
               )}
             </div>
+            
             <div>
-              <label className="block text-xs font-bold text-gray-600 mb-1">Notification Title</label>
+              <label className="block text-xs font-bold text-gray-600 mb-1">Notification Category</label>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none"
+                style={{ borderColor: category !== 'general' ? THEME : '#e5e7eb' }}
+              >
+                <option value="general">General (Home)</option>
+                <option value="rashi">Rashi (Daily Horoscope)</option>
+                <option value="booking">Booking History</option>
+                <option value="puja">Puja Services</option>
+                <option value="profile">User Profile</option>
+              </select>
+            </div>
+
+            {/* Notification Title */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Notification Title</label>
               <input
                 type="text"
-                placeholder="e.g. Special Puja Offer!"
-                required
+                placeholder="e.g., Special Puja Offer!"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none"
-                onFocus={(e) => e.target.style.borderColor = THEME}
-                onBlur={(e) => e.target.style.borderColor = "#e5e7eb"}
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all text-sm font-medium"
               />
             </div>
+
+            {/* Notification Image */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Notification Image (Optional)</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setImage(e.target.files[0])}
+                className="w-full px-4 py-2 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100"
+              />
+            </div>
+
+            {/* Notification Message */}
             <div>
               <label className="block text-xs font-bold text-gray-600 mb-1">Notification Message (Body)</label>
               <textarea

@@ -14,12 +14,17 @@ export const changePassword = (token, body) =>
     body: JSON.stringify(body),
   }).then((r) => r.json());
 
-export const sendNotification = (token, body) =>
-  fetch(`${BASE}/api/admin/send-notification`, {
+export const sendNotification = (token, body) => {
+  const isFormData = body instanceof FormData;
+  const headers = isFormData ? h(token) : { ...h(token), "Content-Type": "application/json" };
+  const payload = isFormData ? body : JSON.stringify(body);
+  
+  return fetch(`${BASE}/api/admin/send-notification`, {
     method: "POST",
-    headers: { ...h(token), "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    headers,
+    body: payload,
   }).then((r) => r.json());
+};
 
 export const triggerRashiNotifications = (token) =>
   fetch(`${BASE}/api/admin/trigger-rashi-notifications`, {
