@@ -21,3 +21,8 @@ export const sendNotification = (token, body) =>
     body: JSON.stringify(body),
   }).then((r) => r.json());
 
+export const triggerRashiNotifications = (token) =>
+  fetch(`${BASE}/api/admin/trigger-rashi-notifications`, {
+    method: "POST",
+    headers: { ...h(token), "Content-Type": "application/json" }
+  }).then((r) => r.json());
