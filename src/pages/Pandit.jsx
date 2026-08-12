@@ -490,15 +490,47 @@ export default function PanditPage() {
                   <SelectField name="experience" label="4. Experience" options={["1–3 Years", "3–7 Years", "7+ Years"]} value={form.experience} onChange={handleChange} />
                   
                   <div className="sm:col-span-2 group">
-                    <label className={labelCls}>5. Specialization (Select multiple)</label>
-                    <div className="flex flex-wrap gap-2 p-3 border rounded-xl bg-gray-50">
-                      {["Grih Pravesh", "Vivah", "Satyanarayan Katha", "Rudrabhishek", "Sunderkand", "Jagran", "Bhagwat Katha"].map(s => (
+                    <label className={labelCls}>5. Specialization (Select or Add New)</label>
+                    <div className="flex flex-wrap gap-2 p-3 border rounded-xl bg-gray-50 mb-2">
+                      {Array.from(new Set(["Grih Pravesh", "Vivah", "Satyanarayan Katha", "Rudrabhishek", "Sunderkand", "Jagran", "Bhagwat Katha", "Anushthan", "Sanskar", ...(form.specializations || [])])).map(s => (
                         <button key={s} type="button" onClick={() => {
                           const current = form.specializations || [];
                           const updated = current.includes(s) ? current.filter(v => v !== s) : [...current, s];
                           setForm(prev => ({ ...prev, specializations: updated }));
-                        }} className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border transition-all ${form.specializations?.includes(s) ? "bg-[#e8621a] text-white border-[#e8621a]" : "bg-white text-gray-500 border-gray-200"}`}>{s}</button>
+                        }} className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border transition-all ${form.specializations?.includes(s) ? "bg-[#e8621a] text-white border-[#e8621a]" : "bg-white text-gray-500 border-gray-200 hover:bg-gray-100"}`}>{s}</button>
                       ))}
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Add custom specialization..."
+                        className="flex-1 p-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-1 focus:ring-[#e8621a] outline-none transition-all"
+                        id="customSpecInput"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const val = e.target.value.trim();
+                            if (val && !(form.specializations || []).includes(val)) {
+                              setForm(prev => ({ ...prev, specializations: [...(prev.specializations || []), val] }));
+                              e.target.value = '';
+                            }
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        className="px-4 py-2 bg-[#e8621a] text-white rounded-lg text-xs font-bold hover:bg-[#c9541a] transition-all"
+                        onClick={() => {
+                          const input = document.getElementById('customSpecInput');
+                          const val = input.value.trim();
+                          if (val && !(form.specializations || []).includes(val)) {
+                            setForm(prev => ({ ...prev, specializations: [...(prev.specializations || []), val] }));
+                            input.value = '';
+                          }
+                        }}
+                      >
+                        Add
+                      </button>
                     </div>
                   </div>
 
