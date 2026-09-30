@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
 import { getAllOffersAdmin, createOffer, updateOffer, toggleOffer, deleteOffer } from "../services/offerService";
 import { getAllPujas } from "../services/pujaService";
-import { FaTrash, FaEdit, FaPlus, FaTimes, FaSearch, FaInbox, FaTag } from "react-icons/fa";
+import { FaTrash, FaEdit, FaPlus, FaTimes, FaSearch, FaInbox, FaTag, FaCheckCircle } from "react-icons/fa";
 
 const THEME = "#E8621A";
 const THEME_LIGHT = "#fff4ee";
@@ -32,13 +32,28 @@ export default function OffersPage() {
 
   const fetchAll = async () => {
     setLoading(true);
-    const [data, pujas] = await Promise.all([getAllOffersAdmin(token), getAllPujas(token)]);
-    setOffers(Array.isArray(data.offers) ? data.offers : []);
-    setPujasList(Array.isArray(pujas) ? pujas : []);
-    setLoading(false);
+    try {
+      const [data, pujas] = await Promise.all([
+        getAllOffersAdmin(token).catch((err) => {
+          console.error("Error fetching offers:", err);
+          return { offers: [] };
+        }),
+        getAllPujas().catch((err) => {
+          console.error("Error fetching pujas:", err);
+          return [];
+        })
+      ]);
+      setOffers(Array.isArray(data?.offers) ? data.offers : []);
+      setPujasList(Array.isArray(pujas) ? pujas : []);
+    } catch (err) {
+      console.error("Failed to load offers data:", err);
+      toast.error("Failed to load offers");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(() => { fetchAll(); }, []);
+  useEffect(() => { fetchAll(); }, [token]);
 
   const openCreate = () => { setEditData(null); setForm(EMPTY); setShowModal(true); };
   const openEdit = (o) => { setEditData(o); setForm({ ...EMPTY, ...o, startDate: o.startDate?.slice(0, 10), endDate: o.endDate?.slice(0, 10) }); setShowModal(true); };
@@ -224,8 +239,8 @@ export default function OffersPage() {
             <div className="px-5 py-4 flex items-center justify-between flex-shrink-0"
               style={{ background: `linear-gradient(135deg, ${THEME}, ${THEME_DARK})` }}>
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
-                  <span className="text-base">{editData ? "✏️" : "➕"}</span>
+                <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center text-white">
+                  <span className="text-base">{editData ? <FaEdit /> : <FaPlus />}</span>
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-white">{editData ? "Edit Offer" : "Add New Offer"}</h3>
@@ -306,7 +321,9 @@ export default function OffersPage() {
                       ))}
                     </div>
                     {form.pujas.length > 0 && (
-                      <p className="text-xs text-green-600 mt-1 font-semibold">✓ {form.pujas.length} puja selected</p>
+                      <p className="text-xs text-green-600 mt-1 font-semibold flex items-center gap-1">
+                        <FaCheckCircle className="text-xs" /> {form.pujas.length} puja selected
+                      </p>
                     )}
                   </div>
                 )}

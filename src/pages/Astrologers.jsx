@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import { FaUserTie, FaLanguage, FaStar, FaInbox, FaSearch, FaTimes, FaChevronLeft, FaChevronRight, FaTrash, FaEdit, FaPlus, FaCheckCircle, FaTimesCircle, FaEye } from "react-icons/fa";
+import { FaUserTie, FaLanguage, FaStar, FaInbox, FaSearch, FaTimes, FaChevronLeft, FaChevronRight, FaTrash, FaEdit, FaPlus, FaCheckCircle, FaTimesCircle, FaEye, FaUpload } from "react-icons/fa";
 
 const THEME = "#E8621A";
 const THEME_LIGHT = "#fff4ee";
@@ -12,6 +12,19 @@ const BASE = import.meta.env.VITE_API_BASE_URL;
 const h = () => {
   const token = localStorage.getItem("admin-token");
   return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
+const getImageSrc = (url) => {
+  if (!url) return null;
+  const str = String(url).trim();
+  if (!str) return null;
+  if (str.startsWith("data:")) return str;
+  if (str.includes("api.pujapathsanskar.com/uploads/")) {
+    const filename = str.split("/uploads/").pop();
+    return `${BASE}/uploads/${filename}`;
+  }
+  if (str.startsWith("http://") || str.startsWith("https://")) return str;
+  return `${BASE}/${str.replace(/^\/+/, "")}`;
 };
 
 export default function Astrologers() {
@@ -42,7 +55,7 @@ export default function Astrologers() {
   };
 
   const defaultFormData = {
-    name: "", specialty: "", experience: "", rating: 5, reviews: "0", emoji: "🧙‍♂️",
+    name: "", specialty: "", experience: "", rating: 5, reviews: "0",
     languages: "", badge: "", badgeColor: "#E65100", status: "online", fees: 151, image: "", 
     bio: "", location: "", isVerified: false,
     consultationModes: ["Chat", "Voice Call", "Video Call"],
@@ -232,8 +245,28 @@ export default function Astrologers() {
                   <tr key={a._id} className="border-t border-gray-50 transition-colors hover:bg-orange-50">
                     <td className="px-6 py-4 text-gray-400 font-medium">{(currentPage - 1) * perPage + i + 1}</td>
                     <td className="px-6 py-4 font-semibold text-gray-800 whitespace-nowrap flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-xl shadow-sm border border-orange-200">
-                        {a.image ? <img src={a.image} alt="pic" className="w-full h-full rounded-full object-cover"/> : a.emoji}
+                      <div className="relative w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-lg shadow-sm border border-orange-200 overflow-hidden flex-shrink-0">
+                        {(() => {
+                          const src = getImageSrc(a.image);
+                          const initial = (a.name || 'A')[0].toUpperCase();
+                          if (src) {
+                            return (
+                              <img
+                                src={src}
+                                alt={a.name}
+                                className="w-full h-full rounded-full object-cover"
+                                onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex'; }}
+                              />
+                            );
+                          }
+                          return null;
+                        })()}
+                        <span
+                          className="w-full h-full rounded-full flex items-center justify-center font-bold text-sm text-orange-600 bg-orange-100"
+                          style={{ display: getImageSrc(a.image) ? 'none' : 'flex' }}
+                        >
+                          {(a.name || 'A')[0].toUpperCase()}
+                        </span>
                       </div>
                       <div>
                         <div>{a.name} {a.isVerified && <FaCheckCircle className="inline text-green-500 text-xs ml-1" />}</div>
@@ -370,13 +403,83 @@ export default function Astrologers() {
                       <input value={formData.reviews} onChange={e => setFormData({...formData, reviews: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 bg-white transition-all" style={{ "--tw-ring-color": THEME_LIGHT }} placeholder="e.g. 2.1k" />
                     </div>
 
-                    <div className="space-y-1">
-                      <label className="text-sm font-semibold text-gray-600">Emoji icon</label>
-                      <input value={formData.emoji} onChange={e => setFormData({...formData, emoji: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 bg-white transition-all text-xl" style={{ "--tw-ring-color": THEME_LIGHT }} placeholder="🧙‍♂️" />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-sm font-semibold text-gray-600">Image URL (Optional)</label>
-                      <input value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 bg-white transition-all" style={{ "--tw-ring-color": THEME_LIGHT }} placeholder="https://..." />
+                    <div className="space-y-2 sm:col-span-2">
+                      <label className="text-sm font-semibold text-gray-600">Profile Photo</label>
+                      <div className="flex flex-col sm:flex-row items-center gap-4 p-3 bg-white border border-gray-200 rounded-xl">
+                        <div className="relative w-16 h-16 rounded-full border-2 border-orange-200 bg-orange-50 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-inner">
+                          {(() => {
+                            const previewSrc = formData.image?.startsWith('data:') ? formData.image : getImageSrc(formData.image);
+                            if (previewSrc) {
+                              return (
+                                <img
+                                  src={previewSrc}
+                                  alt="Preview"
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                    if (e.currentTarget.nextSibling) {
+                                      e.currentTarget.nextSibling.style.display = 'flex';
+                                    }
+                                  }}
+                                />
+                              );
+                            }
+                            return null;
+                          })()}
+                          <span
+                            className="w-full h-full rounded-full flex items-center justify-center font-bold text-lg text-orange-600 bg-orange-100"
+                            style={{ display: formData.image ? 'none' : 'flex' }}
+                          >
+                            {(formData.name || 'A')[0].toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="flex-1 w-full space-y-2">
+                          <div className="flex items-center gap-2">
+                            <label className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-orange-300 bg-orange-50 text-orange-700 text-xs font-bold cursor-pointer hover:bg-orange-100 transition-all">
+                              <FaUpload /> Choose Photo from Device
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    if (file.size > 5 * 1024 * 1024) {
+                                      toast.error("Image size must be less than 5MB");
+                                      return;
+                                    }
+                                    const reader = new FileReader();
+                                    reader.onloadend = () => {
+                                      setFormData({ ...formData, image: reader.result });
+                                      toast.success("Photo selected!");
+                                    };
+                                    reader.readAsDataURL(file);
+                                  }
+                                }}
+                              />
+                            </label>
+                            {formData.image && (
+                              <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, image: "" })}
+                                className="text-xs text-red-500 hover:text-red-700 font-medium px-2 py-1"
+                              >
+                                Remove
+                              </button>
+                            )}
+                          </div>
+                          <input
+                            value={formData.image?.startsWith('data:') ? '(Image file selected)' : formData.image}
+                            onChange={e => {
+                              if (!formData.image?.startsWith('data:')) {
+                                setFormData({...formData, image: e.target.value});
+                              }
+                            }}
+                            className="w-full px-3 py-1.5 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-1 bg-gray-50 text-gray-600"
+                            placeholder="Or enter image URL (https://...)"
+                          />
+                        </div>
+                      </div>
                     </div>
 
                     <div className="space-y-1">

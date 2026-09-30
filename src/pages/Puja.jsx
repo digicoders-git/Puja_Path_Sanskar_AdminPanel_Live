@@ -1,8 +1,15 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
-import { getAllPujas, createPuja, updatePuja, deletePuja, togglePuja, toggleTrendingPuja, getEnums, getAllPujaTypes, createPujaType } from "../services/pujaService";
-import { FaEye, FaTrash, FaEdit, FaPlus, FaTimes, FaSearch, FaInbox } from "react-icons/fa";
+import {
+  getAllPujas, createPuja, updatePuja,
+  deletePuja, togglePuja, toggleTrendingPuja,
+  getEnums, getAllPujaTypes, createPujaType
+} from "../services/pujaService";
+import { 
+  FaEye, FaTrash, FaEdit, FaPlus, FaTimes, FaSearch, FaInbox,
+  FaPray, FaFire, FaBookOpen, FaCheckCircle, FaFileAlt, FaStar, FaShoppingCart, FaCalendarAlt, FaPrayingHands, FaClock
+} from "react-icons/fa";
 import PujaCharts from "../components/PujaCharts";
 
 const THEME = "#E8621A";
@@ -35,18 +42,32 @@ export default function PujaPage() {
   const fetchAll = async () => {
     setLoading(true);
     try {
-      const [data, enumData, typesData] = await Promise.all([
+      const [pujaRes, enumRes, typesRes] = await Promise.allSettled([
         getAllPujas(token),
         getEnums(),
         getAllPujaTypes()
       ]);
-      setPujas(Array.isArray(data) ? data : []);
-      setEnums(enumData);
-      setPujaTypes(Array.isArray(typesData) ? typesData : []);
+      
+      if (pujaRes.status === "fulfilled") {
+        const data = pujaRes.value;
+        setPujas(Array.isArray(data) ? data : data?.pujas || data?.data || []);
+      } else {
+        toast.error("Failed to fetch pujas");
+      }
+
+      if (enumRes.status === "fulfilled") {
+        setEnums(enumRes.value || {});
+      }
+
+      if (typesRes.status === "fulfilled") {
+        const typesData = typesRes.value;
+        setPujaTypes(Array.isArray(typesData) ? typesData : typesData?.types || typesData?.data || []);
+      }
     } catch (err) {
       toast.error("Failed to fetch pujas");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => { fetchAll(); }, []);
@@ -176,14 +197,14 @@ export default function PujaPage() {
         </div>
         <button 
           onClick={() => setFilterTrending(!filterTrending)}
-          className={`px-4 py-2.5 rounded-xl text-sm font-bold border transition-colors whitespace-nowrap flex items-center justify-center`}
+          className={`px-4 py-2.5 rounded-xl text-sm font-bold border transition-colors whitespace-nowrap flex items-center justify-center gap-1.5`}
           style={{ 
             backgroundColor: filterTrending ? THEME_LIGHT : "white",
             borderColor: filterTrending ? THEME : "#e5e7eb",
             color: filterTrending ? THEME : "#6b7280"
           }}
         >
-          🔥 Trending {filterTrending && "Only"}
+          <FaFire className={filterTrending ? "text-orange-500" : "text-gray-400"} /> Trending {filterTrending && "Only"}
         </button>
       </div>
 
@@ -212,10 +233,20 @@ export default function PujaPage() {
                 <tr key={p._id} className="border-t border-gray-50 hover:bg-orange-50 transition-colors">
                   <td className="px-4 py-3 text-gray-400 text-xs">{i + 1}</td>
                   <td className="px-4 py-3 whitespace-nowrap">
-                    <div className="w-9 h-9 rounded-xl overflow-hidden flex-shrink-0 bg-orange-50 flex items-center justify-center">
-                      {p.image
-                        ? <img src={p.image} className="w-full h-full object-cover" />
-                        : <span className="text-lg">🕉️</span>}
+                    <div className="w-9 h-9 rounded-xl overflow-hidden flex-shrink-0 bg-orange-50 flex items-center justify-center text-orange-500">
+                      {p.image ? (
+                        <img
+                          src={p.image}
+                          alt={p.pujaName}
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            e.currentTarget.parentElement.innerHTML = '<span class="text-orange-500 text-base">🙏</span>';
+                          }}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <FaPrayingHands className="text-base" />
+                      )}
                     </div>
                   </td>
                   <td className="px-4 py-3 font-bold text-gray-800 whitespace-nowrap">{p.pujaName}</td>
@@ -226,9 +257,9 @@ export default function PujaPage() {
                   <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{p.duration}</td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <button onClick={() => handleTrendingToggle(p._id)}
-                      className="px-3 py-1 rounded-full text-xs font-bold transition-all"
+                      className="px-3 py-1 rounded-full text-xs font-bold transition-all flex items-center gap-1"
                       style={{ backgroundColor: p.isTrending ? "#eab30820" : "#9ca3af20", color: p.isTrending ? "#eab308" : "#6b7280" }}>
-                      {p.isTrending ? "🔥 Trending" : "Normal"}
+                      {p.isTrending && <FaFire className="text-xs" />} {p.isTrending ? "Trending" : "Normal"}
                     </button>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
@@ -271,8 +302,8 @@ export default function PujaPage() {
             <div className="px-5 py-4 flex items-center justify-between flex-shrink-0"
               style={{ background: `linear-gradient(135deg, ${THEME}, ${THEME_DARK})` }}>
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
-                  <span className="text-base">{editData ? "✏️" : "➕"}</span>
+                <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center text-white">
+                  <span className="text-base">{editData ? <FaEdit /> : <FaPlus />}</span>
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-white">{editData ? "Edit Puja" : "Add New Puja"}</h3>
@@ -326,7 +357,9 @@ export default function PujaPage() {
 
                 <div className="flex items-center gap-2 mb-2">
                   <input type="checkbox" id="isTrending" name="isTrending" checked={form.isTrending} onChange={handleChange} className="w-4 h-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500" />
-                  <label htmlFor="isTrending" className="text-sm font-semibold text-gray-700 cursor-pointer flex items-center gap-1">Mark as Trending <span className="text-orange-500">🔥</span></label>
+                  <label htmlFor="isTrending" className="text-sm font-semibold text-gray-700 cursor-pointer flex items-center gap-1">
+                    Mark as Trending <FaFire className="text-orange-500 text-xs" />
+                  </label>
                 </div>
 
                 <div>
@@ -380,7 +413,7 @@ export default function PujaPage() {
                       onChange={(e) => setImageFile(e.target.files[0])}
                       className="w-full text-xs text-gray-500" />
                     {imageFile
-                      ? <p className="text-xs text-green-600 mt-1 font-semibold">✓ {imageFile.name}</p>
+                      ? <p className="text-xs text-green-600 mt-1 font-semibold flex items-center gap-1"><FaCheckCircle /> {imageFile.name}</p>
                       : <p className="text-xs text-gray-400 mt-1">JPG, PNG, WEBP — Max 5MB</p>
                     }
                   </div>
@@ -411,22 +444,22 @@ export default function PujaPage() {
               <div className="px-5 pt-5 pb-8">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-white/30 flex-shrink-0 bg-white/20 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-white/30 flex-shrink-0 bg-white/20 flex items-center justify-center text-white">
                       {viewData.image
                         ? <img src={viewData.image} className="w-full h-full object-cover" />
-                        : <span className="text-2xl">🕉️</span>}
+                        : <FaPrayingHands className="text-2xl" />}
                     </div>
                     <div>
                       <h3 className="text-base font-black text-white">{viewData.pujaName}</h3>
                       <div className="flex flex-wrap items-center gap-1.5 mt-1">
                         <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-white/20 text-white">{viewData.pujaType}</span>
-                        <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-white/20 text-white">⏱ {viewData.duration}</span>
+                        <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-white/20 text-white flex items-center gap-1"><FaClock className="text-[10px]" /> {viewData.duration}</span>
                         <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${viewData.isActive ? "bg-green-400/30 text-green-100" : "bg-red-400/30 text-red-100"}`}>
                           {viewData.isActive ? "Active" : "Inactive"}
                         </span>
                         {viewData.isTrending && (
-                          <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-orange-400/30 text-orange-100">
-                            🔥 Trending
+                          <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-orange-400/30 text-orange-100 flex items-center gap-1">
+                            <FaFire className="text-[10px]" /> Trending
                           </span>
                         )}
                       </div>
@@ -439,34 +472,46 @@ export default function PujaPage() {
             </div>
             <div className="overflow-y-auto flex-1 px-5 pb-5 space-y-4">
               <div>
-                <p className="text-xs font-black uppercase tracking-wider mb-2" style={{ color: THEME }}>📖 Description</p>
+                <p className="text-xs font-black uppercase tracking-wider mb-2 flex items-center gap-1.5" style={{ color: THEME }}>
+                  <FaBookOpen className="text-xs" /> Description
+                </p>
                 <p className="text-sm text-gray-600 leading-relaxed p-3 rounded-xl bg-gray-50">{viewData.description}</p>
               </div>
               <div>
-                <p className="text-xs font-black uppercase tracking-wider mb-2" style={{ color: THEME }}>✅ What's Included</p>
+                <p className="text-xs font-black uppercase tracking-wider mb-2 flex items-center gap-1.5" style={{ color: THEME }}>
+                  <FaCheckCircle className="text-xs" /> What's Included
+                </p>
                 <p className="text-sm text-gray-600 p-3 rounded-xl bg-gray-50">{viewData.whatIsIncluded}</p>
               </div>
               {viewData.shortDescription && (
                 <div>
-                  <p className="text-xs font-black uppercase tracking-wider mb-2" style={{ color: THEME }}>📝 Short Description</p>
+                  <p className="text-xs font-black uppercase tracking-wider mb-2 flex items-center gap-1.5" style={{ color: THEME }}>
+                    <FaFileAlt className="text-xs" /> Short Description
+                  </p>
                   <p className="text-sm text-gray-600 p-3 rounded-xl bg-gray-50">{viewData.shortDescription}</p>
                 </div>
               )}
               {viewData.benefits && (
                 <div>
-                  <p className="text-xs font-black uppercase tracking-wider mb-2" style={{ color: THEME }}>✨ Benefits</p>
+                  <p className="text-xs font-black uppercase tracking-wider mb-2 flex items-center gap-1.5" style={{ color: THEME }}>
+                    <FaStar className="text-xs" /> Benefits
+                  </p>
                   <p className="text-sm text-gray-600 p-3 rounded-xl bg-gray-50 whitespace-pre-wrap">{viewData.benefits}</p>
                 </div>
               )}
               {viewData.requiredMaterials && (
                 <div>
-                  <p className="text-xs font-black uppercase tracking-wider mb-2" style={{ color: THEME }}>🛒 Required Materials</p>
+                  <p className="text-xs font-black uppercase tracking-wider mb-2 flex items-center gap-1.5" style={{ color: THEME }}>
+                    <FaShoppingCart className="text-xs" /> Required Materials
+                  </p>
                   <p className="text-sm text-gray-600 p-3 rounded-xl bg-gray-50 whitespace-pre-wrap">{viewData.requiredMaterials}</p>
                 </div>
               )}
               {viewData.auspiciousTime && (
                 <div>
-                  <p className="text-xs font-black uppercase tracking-wider mb-2" style={{ color: THEME }}>📅 Auspicious Time</p>
+                  <p className="text-xs font-black uppercase tracking-wider mb-2 flex items-center gap-1.5" style={{ color: THEME }}>
+                    <FaCalendarAlt className="text-xs" /> Auspicious Time
+                  </p>
                   <p className="text-sm text-gray-600 p-3 rounded-xl bg-gray-50">{viewData.auspiciousTime}</p>
                 </div>
               )}

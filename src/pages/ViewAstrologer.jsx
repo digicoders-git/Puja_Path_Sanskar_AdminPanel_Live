@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FaCheckCircle, FaTimesCircle, FaStar, FaArrowLeft } from 'react-icons/fa';
+import { FaCheckCircle, FaTimesCircle, FaStar, FaArrowLeft, FaUserTie, FaSun } from 'react-icons/fa';
 import { toast } from 'sonner';
 
 const BASE = import.meta.env.VITE_API_BASE_URL;
@@ -58,8 +58,17 @@ export default function ViewAstrologer() {
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-6 md:p-8 flex flex-col md:flex-row gap-8 items-start">
-          <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-orange-100 flex items-center justify-center text-6xl shadow-sm border border-orange-200 overflow-hidden shrink-0">
-            {astrologer.image ? <img src={astrologer.image} alt="pic" className="w-full h-full object-cover"/> : astrologer.emoji}
+          <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-orange-100 flex items-center justify-center text-5xl text-orange-600 shadow-sm border border-orange-200 overflow-hidden shrink-0">
+            {astrologer.image ? (
+              <img
+                src={astrologer.image}
+                alt="pic"
+                className="w-full h-full object-cover"
+                onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement.innerHTML = '<span class="text-orange-600 font-bold"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="56" width="56" xmlns="http://www.w3.org/2000/svg"><path d="M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zm89.6 32h-16.7c-22.2 10.2-46.9 16-72.9 16s-50.6-5.8-72.9-16h-16.7C60.2 288 0 348.2 0 422.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-41.6c0-74.2-60.2-134.4-134.4-134.4z"></path></svg></span>'; }}
+              />
+            ) : (
+              <FaUserTie className="text-orange-600" />
+            )}
           </div>
           
           <div className="flex-1 space-y-4 w-full">
@@ -124,7 +133,7 @@ export default function ViewAstrologer() {
               <div className="flex flex-wrap gap-3">
                 {astrologer.services?.map((srv, i) => (
                   <div key={i} className="flex items-center gap-2 px-4 py-2 bg-orange-50 border border-orange-100 rounded-xl text-sm font-semibold text-gray-800">
-                    <span className="text-lg">{srv.icon || '✨'}</span>
+                    <span className="text-orange-500 text-sm"><FaSun /></span>
                     {srv.name || srv}
                   </div>
                 ))}

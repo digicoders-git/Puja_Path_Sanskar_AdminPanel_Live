@@ -145,7 +145,7 @@ export default function Consultations() {
             <table className="w-full text-sm min-w-[800px]">
               <thead>
                 <tr style={{ background: `linear-gradient(135deg, ${THEME}, ${THEME_DARK})` }}>
-                  {["#", "Date", "Astrologer", "User", "Status", "Actions"].map((h) => (
+                  {["#", "Date", "Astrologer", "User", "Amount", "Status", "Actions"].map((h) => (
                     <th key={h} className="px-6 py-4 text-left text-xs font-bold text-white whitespace-nowrap tracking-wide">{h}</th>
                   ))}
                 </tr>
@@ -172,16 +172,19 @@ export default function Consultations() {
                         <span className="text-[11px] text-gray-400 flex items-center gap-2 mt-0.5"><FaPhoneAlt className="text-gray-300 text-[9px]" /> {b.user?.mobile || "N/A"}</span>
                       </div>
                     </td>
+                    <td className="px-6 py-4">
+                      <span className="font-bold text-gray-800">₹{b.amount || '—'}</span>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <select 
                         value={b.status} 
                         onChange={(e) => handleStatusChange(b._id, e.target.value)}
                         className={`px-3 py-1.5 rounded-full text-[11px] font-bold border-0 focus:ring-2 focus:ring-orange-200 cursor-pointer appearance-none ${getStatusColor(b.status)}`}
                       >
-                        <option value="Pending">🕒 Pending</option>
-                        <option value="Confirmed">👍 Confirmed</option>
-                        <option value="Completed">✅ Completed</option>
-                        <option value="Cancelled">❌ Cancelled</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Confirmed">Confirmed</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Cancelled">Cancelled</option>
                       </select>
                     </td>
                     <td className="px-6 py-4">
@@ -222,65 +225,147 @@ export default function Consultations() {
 
       {/* Modal */}
       {selectedBooking && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center p-6 border-b border-gray-100" style={{ backgroundColor: THEME_LIGHT }}>
-              <h3 className="text-lg font-bold flex items-center gap-2" style={{ color: THEME_DARK }}>
-                <FiEye className="text-xl" /> Booking Details
-              </h3>
-              <button onClick={() => setSelectedBooking(null)} className="w-8 h-8 flex items-center justify-center rounded-full bg-white text-gray-400 hover:text-red-500 shadow-sm transition-all hover:scale-105">
-                <FaTimes />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setSelectedBooking(null)}>
+          <div
+            className="bg-white rounded-2xl w-full max-w-xl shadow-2xl flex flex-col max-h-[90vh]"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100 rounded-t-2xl" style={{ background: `linear-gradient(135deg, ${THEME}, ${THEME_DARK})` }}>
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
+                  <FiEye className="text-white text-lg" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white">Booking Details</h3>
+                  <p className="text-xs text-white/70">#{selectedBooking._id?.slice(-8).toUpperCase()}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedBooking(null)}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30 transition-all"
+              >
+                <FaTimes className="text-sm" />
               </button>
             </div>
 
-            <div className="p-6 overflow-y-auto space-y-6">
-              <div className="bg-orange-50 p-4 rounded-xl border border-orange-100">
-                <h3 className="font-bold text-orange-800 flex items-center gap-2 mb-3 border-b border-orange-200 pb-2">
-                  <FaUser /> User Information
-                </h3>
-                <div className="grid grid-cols-2 gap-y-3 text-sm">
-                  <p><span className="text-gray-500 block text-xs">Name</span> <span className="font-semibold text-gray-800">{selectedBooking.user?.name}</span></p>
-                  <p><span className="text-gray-500 block text-xs">Mobile</span> <span className="font-semibold text-gray-800">{selectedBooking.user?.mobile || 'N/A'}</span></p>
-                  <p className="col-span-2"><span className="text-gray-500 block text-xs">Email</span> <span className="font-semibold text-gray-800">{selectedBooking.user?.email}</span></p>
-                  <p><span className="text-gray-500 block text-xs">DOB</span> <span className="font-semibold text-gray-800">{selectedBooking.user?.dateOfBirth || 'N/A'}</span></p>
-                </div>
-              </div>
+            {/* Modal Body */}
+            <div className="overflow-y-auto flex-1 p-6 space-y-4">
 
-              <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
-                <h3 className="font-bold text-blue-800 flex items-center gap-2 mb-3 border-b border-blue-200 pb-2">
-                  <FaStar /> Astrologer Information
-                </h3>
-                <div className="grid grid-cols-2 gap-y-3 text-sm">
-                  <p><span className="text-gray-500 block text-xs">Name</span> <span className="font-semibold text-gray-800">{selectedBooking.astrologer?.name}</span></p>
-                  <p><span className="text-gray-500 block text-xs">Specialty</span> <span className="font-semibold text-gray-800">{selectedBooking.astrologer?.specialty}</span></p>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="font-bold text-gray-800 mb-2">Request Details</h3>
-                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 text-sm text-gray-700 leading-relaxed shadow-inner">
-                  {selectedBooking.problemDescription}
-                </div>
-              </div>
-              
-              <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl border border-gray-200">
+              {/* Amount Badge */}
+              <div className="flex items-center justify-between p-4 rounded-2xl border-2" style={{ borderColor: THEME, backgroundColor: THEME_LIGHT }}>
                 <div>
-                  <span className="text-gray-500 block text-xs mb-1">Status</span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(selectedBooking.status)}`}>
-                    {selectedBooking.status}
-                  </span>
+                  <p className="text-xs text-gray-500 mb-0.5">Amount Paid</p>
+                  <p className="text-3xl font-black" style={{ color: THEME }}>₹{selectedBooking.amount || 0}</p>
                 </div>
                 <div className="text-right">
-                  <span className="text-gray-500 block text-xs mb-1">Booking Time</span>
-                  <span className="font-bold text-gray-800 text-sm">
-                    {new Date(selectedBooking.createdAt).toLocaleString()}
+                  <p className="text-xs text-gray-500 mb-1">Payment Status</p>
+                  <span className={`px-3 py-1.5 rounded-full text-xs font-bold ${selectedBooking.paymentStatus === 'Paid' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
+                    {selectedBooking.paymentStatus === 'Paid' ? '✓ Paid' : selectedBooking.paymentStatus || 'Pending'}
                   </span>
+                </div>
+              </div>
+
+              {/* User + Astrologer Row */}
+              <div className="grid grid-cols-2 gap-3">
+                {/* User Info */}
+                <div className="bg-orange-50 border border-orange-100 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: THEME }}>
+                      <FaUser className="text-white text-xs" />
+                    </div>
+                    <span className="font-bold text-orange-900 text-sm">User</span>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <p className="text-[10px] text-gray-400 uppercase tracking-wide">Name</p>
+                      <p className="font-semibold text-gray-800 text-sm">{selectedBooking.user?.name || '—'}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-gray-400 uppercase tracking-wide">Mobile</p>
+                      <p className="font-semibold text-gray-800">{selectedBooking.user?.mobile || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-gray-400 uppercase tracking-wide">Email</p>
+                      <p className="font-medium text-gray-700 text-xs break-all">{selectedBooking.user?.email || 'N/A'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Astrologer Info */}
+                <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center">
+                      <FaStar className="text-white text-xs" />
+                    </div>
+                    <span className="font-bold text-blue-900 text-sm">Astrologer</span>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <p className="text-[10px] text-gray-400 uppercase tracking-wide">Name</p>
+                      <p className="font-semibold text-gray-800 text-sm">{selectedBooking.astrologer?.name || '—'}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-gray-400 uppercase tracking-wide">Specialty</p>
+                      <p className="font-medium text-gray-700 text-xs">{selectedBooking.astrologer?.specialty || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-gray-400 uppercase tracking-wide">Booking Date</p>
+                      <p className="font-medium text-gray-700 text-xs">
+                        {selectedBooking.bookingDate
+                          ? new Date(selectedBooking.bookingDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+                          : new Date(selectedBooking.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Plan / Service Details */}
+              <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                  <FaCalendarAlt className="text-gray-400" /> Consultation Plan
+                </p>
+                <p className="text-sm font-semibold text-gray-800">{selectedBooking.problemDescription || '—'}</p>
+              </div>
+
+              {/* Status + Time */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-2">Booking Status</p>
+                  <select
+                    value={selectedBooking.status}
+                    onChange={(e) => {
+                      handleStatusChange(selectedBooking._id, e.target.value);
+                      setSelectedBooking({ ...selectedBooking, status: e.target.value });
+                    }}
+                    className={`w-full px-3 py-1.5 rounded-lg text-xs font-bold border focus:outline-none cursor-pointer ${getStatusColor(selectedBooking.status)}`}
+                  >
+                    <option value="Pending">Pending</option>
+                    <option value="Confirmed">Confirmed</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Cancelled">Cancelled</option>
+                  </select>
+                </div>
+                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-2">Booked At</p>
+                  <p className="text-xs font-semibold text-gray-800">
+                    {new Date(selectedBooking.createdAt).toLocaleString('en-IN', {
+                      day: '2-digit', month: 'short', year: 'numeric',
+                      hour: '2-digit', minute: '2-digit'
+                    })}
+                  </p>
                 </div>
               </div>
             </div>
 
-            <div className="p-4 border-t border-gray-100 flex justify-end bg-gray-50 rounded-b-2xl">
-              <button onClick={() => setSelectedBooking(null)} className="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all shadow-md hover:shadow-lg" style={{ background: `linear-gradient(135deg, ${THEME}, ${THEME_DARK})` }}>
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3 bg-gray-50 rounded-b-2xl">
+              <button
+                onClick={() => setSelectedBooking(null)}
+                className="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all shadow-md hover:shadow-lg hover:opacity-90"
+                style={{ background: `linear-gradient(135deg, ${THEME}, ${THEME_DARK})` }}
+              >
                 Close
               </button>
             </div>
@@ -290,3 +375,4 @@ export default function Consultations() {
     </div>
   );
 }
+

@@ -27,6 +27,7 @@ function App() {
       <Toaster position="top-right" />
       <Routes>
         {/* Public */}
+        <Route path="/" element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />} />
         <Route path="/login" element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <Login />} />
 
         {/* Protected */}

@@ -47,9 +47,6 @@ export function useGooglePlacesAutocomplete() {
     const initAutocomplete = () => {
       if (!inputRef.current || !window.google || !window.google.maps || !window.google.maps.places) return;
 
-      // Avoid multiple initializations on the same element
-      if (autocompleteRef.current) return;
-
       autocompleteRef.current = new window.google.maps.places.Autocomplete(
         inputRef.current,
         {
@@ -63,11 +60,38 @@ export function useGooglePlacesAutocomplete() {
         if (selected && selected.geometry) {
           const lat = selected.geometry.location.lat();
           const lng = selected.geometry.location.lng();
-          const address = selected.formatted_address || "";
-          setPlace({ address, lat, lng });
+          const address = selected.formatted_address || selected.name || "";
+          
+          let city = "";
+          let state = "";
+          let district = "";
+          let pincode = "";
+
+          selected.address_components?.forEach((comp) => {
+            const types = comp.types || [];
+            if (types.includes("locality")) city = comp.long_name;
+            else if (types.includes("administrative_area_level_2")) district = comp.long_name;
+            else if (types.includes("administrative_area_level_1")) state = comp.long_name;
+            else if (types.includes("postal_code")) pincode = comp.long_name;
+          });
+
+          setPlace({ 
+            address, 
+            lat, 
+            lng,
+            city: city || district,
+            state,
+            district: district || city,
+            pincode
+          });
         }
       });
     };
+
+    // Style the google places autocomplete dropdown so it appears above Tailwind modals (z-index: 9999)
+    const styleEl = document.createElement("style");
+    styleEl.innerHTML = `.pac-container { z-index: 99999 !important; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); border: 1px solid #fed7aa; }`;
+    document.head.appendChild(styleEl);
 
     // Use an interval to check if inputRef.current is available (since it's inside a conditional step)
     const checkInterval = setInterval(() => {

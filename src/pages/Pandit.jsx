@@ -10,7 +10,8 @@ import { getAllPujas } from "../services/pujaService";
 import { 
   FaEye, FaEdit, FaTrash, FaToggleOn, FaToggleOff, FaPlus, 
   FaWhatsapp, FaTimes, FaSearch, FaInbox, FaVideo, FaImage, 
-  FaCheckCircle, FaUserCircle, FaPhoneAlt, FaFileAlt, FaTag, FaEnvelope, FaStar
+  FaCheckCircle, FaUserCircle, FaPhoneAlt, FaFileAlt, FaTag, FaEnvelope, FaStar,
+  FaMapMarkerAlt
 } from "react-icons/fa";
 import PanditCharts from "../components/PanditCharts";
 
@@ -33,7 +34,9 @@ const EMPTY = {
   traditionalDress: "", audioClarity: "", mediaPermission: "",
   alternateNumber: "", emailId: "", dob: "", gender: "",
   currentAddress: "", permanentAddress: "", pincode: "",
+  latitude: 0, longitude: 0, mapAddress: "",
   aadharNumber: "", panCard: "", trainingGurukul: "",
+  totalExperience: "", specialization: "", vedaSpecialization: "",
   basicPujaCharges: "", akhandPathCharges: "", perDayCharges: "", travelCharges: "",
   mantraLevel: "", timeDiscipline: "", dressCode: "", eventHandling: "",
   bhajanKirtan: false, astrology: false, vastu: false, havan: false, corporateExperience: false,
@@ -58,10 +61,10 @@ const SelectField = ({ name, label, options = [], value, onChange }) => (
   </div>
 );
 
-const InputField = ({ name, label, type = "text", placeholder, value, onChange, ref }) => (
+const InputField = ({ name, label, type = "text", placeholder, value, onChange, inputRef }) => (
   <div>
     <label className={labelCls}>{label}</label>
-    <input ref={ref} type={type} name={name} value={value} onChange={onChange}
+    <input ref={inputRef} type={type} name={name} value={value} onChange={onChange}
       placeholder={placeholder} className={inputCls} />
   </div>
 );
@@ -76,10 +79,25 @@ const CheckField = ({ name, label, checked, onChange }) => (
   </label>
 );
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+
+const formatMediaUrl = (url) => {
+  if (!url) return "";
+  let clean = String(url).replace(/\\/g, "/").trim();
+  const apiBaseClean = API_BASE ? API_BASE.replace(/\/+$/, "") : "";
+
+  if (clean.startsWith("http://") || clean.startsWith("https://")) {
+    return clean;
+  }
+
+  const path = clean.startsWith("/") ? clean : `/${clean}`;
+  return apiBaseClean ? `${apiBaseClean}${path}` : path;
+};
+
 const FilePreview = ({ file, existingPath, type = "image", onRemove }) => {
   let url = "";
   if (file) url = URL.createObjectURL(file);
-  else if (existingPath) url = existingPath;
+  else if (existingPath) url = formatMediaUrl(existingPath);
 
   if (!url) return null;
 
@@ -133,8 +151,13 @@ export default function PanditPage() {
       setForm((prev) => ({
         ...prev,
         currentAddress: selectedPlace.address,
-        latitude: selectedPlace.lat,
-        longitude: selectedPlace.lng,
+        mapAddress: selectedPlace.address,
+        city: selectedPlace.city || prev.city,
+        state: selectedPlace.state || prev.state,
+        district: selectedPlace.district || prev.district,
+        pincode: selectedPlace.pincode || prev.pincode,
+        latitude: selectedPlace.lat || prev.latitude,
+        longitude: selectedPlace.lng || prev.longitude,
       }));
     }
   }, [selectedPlace]);
@@ -305,10 +328,24 @@ export default function PanditPage() {
                   {/* Pandit Info */}
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gray-100 border-2 border-white shadow-sm overflow-hidden flex-shrink-0">
-                        {p.profilePhoto 
-                          ? <img src={p.profilePhoto} className="w-full h-full object-cover" /> 
-                          : <FaUserCircle className="w-full h-full text-gray-300" />}
+                      <div className="w-10 h-10 rounded-full bg-gray-100 border-2 border-white shadow-sm overflow-hidden flex-shrink-0 flex items-center justify-center">
+                        {p.profilePhoto ? (
+                          <img
+                            src={formatMediaUrl(p.profilePhoto)}
+                            alt={p.fullName}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              if (e.currentTarget.nextSibling) {
+                                e.currentTarget.nextSibling.style.display = 'block';
+                              }
+                            }}
+                          />
+                        ) : null}
+                        <FaUserCircle
+                          className="w-full h-full text-gray-300"
+                          style={{ display: p.profilePhoto ? 'none' : 'block' }}
+                        />
                       </div>
                       <div>
                         <p className="font-bold text-gray-800 text-sm leading-tight">{p.fullName}</p>
@@ -484,9 +521,33 @@ export default function PanditPage() {
                   <InputField name="fullName" label="1. Full Name" placeholder="Name" value={form.fullName} onChange={handleChange} />
                   <InputField name="mobileNumber" label="2. Mobile Number" placeholder="10 Digit" value={form.mobileNumber} onChange={handleChange} />
                   <InputField name="whatsappNumber" label="WhatsApp Number" placeholder="Optional" value={form.whatsappNumber} onChange={handleChange} />
-                  <InputField name="state" label="3. State" value={form.state} onChange={handleChange} />
-                  <InputField name="city" label="City" value={form.city} onChange={handleChange} />
-                  <InputField name="district" label="District" value={form.district} onChange={handleChange} />
+                  <div className="sm:col-span-2">
+                    <label className={labelCls}>
+                      <span className="flex items-center justify-between">
+                        <span className="flex items-center gap-1.5">
+                          <FaMapMarkerAlt className="text-orange-500" />
+                          <span>3. Full Address (Search & Select Location)</span>
+                        </span>
+                        {form.currentAddress && (
+                          <span className="text-[10px] text-green-600 font-bold bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">
+                            ✓ Location Selected
+                          </span>
+                        )}
+                      </span>
+                    </label>
+                    <input
+                      ref={addressInputRef}
+                      type="text"
+                      name="currentAddress"
+                      value={form.currentAddress || ""}
+                      onChange={handleChange}
+                      placeholder="Start typing location... e.g. Aliganj, Lucknow, Uttar Pradesh"
+                      className={`${inputCls} ${form.currentAddress ? "border-orange-400 ring-2 ring-orange-100 bg-orange-50/20" : ""}`}
+                    />
+                    <p className="text-[11px] text-gray-400 mt-1">
+                      Type karte hi location suggestion aayega — select karte hi address & coordinates auto-fetch ho jayenge.
+                    </p>
+                  </div>
                   <SelectField name="experience" label="4. Experience" options={["1–3 Years", "3–7 Years", "7+ Years"]} value={form.experience} onChange={handleChange} />
                   
                   <div className="sm:col-span-2 group">
@@ -561,7 +622,7 @@ export default function PanditPage() {
                     <div className="flex flex-wrap gap-2 mt-2">
                       {form.pujaPhotos?.map((p, idx) => (
                         <div key={`existing-${idx}`} className="w-12 h-12 rounded-lg overflow-hidden border border-gray-200">
-                          <img src={p} className="w-full h-full object-cover" />
+                          <img src={formatMediaUrl(p)} className="w-full h-full object-cover" />
                         </div>
                       ))}
                       {pujaPhotosFiles.map((f, idx) => (
@@ -693,7 +754,7 @@ export default function PanditPage() {
                 <div className="flex items-center gap-5">
                   <div className="w-20 h-20 rounded-2xl bg-white/20 p-1 backdrop-blur-md flex items-center justify-center overflow-hidden border-2 border-white/40 shadow-xl">
                     {viewData.profilePhoto 
-                      ? <img src={viewData.profilePhoto} className="w-full h-full object-cover rounded-xl" /> 
+                      ? <img src={formatMediaUrl(viewData.profilePhoto)} className="w-full h-full object-cover rounded-xl" /> 
                       : <FaUserCircle className="text-5xl text-white/50" />}
                   </div>
                   <div>
@@ -856,10 +917,10 @@ export default function PanditPage() {
                             <div className="relative group w-full aspect-[4/3] max-w-[240px]">
                               <div className="absolute inset-0 bg-orange-500/10 blur-2xl rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                               <div className="relative h-full rounded-2xl overflow-hidden border-2 border-white shadow-xl bg-white group-hover:-translate-y-1 transition-all duration-500 cursor-zoom-in"
-                                   onClick={() => viewData.idProof && window.open(viewData.idProof, "_blank")}>
+                                   onClick={() => viewData.idProof && window.open(formatMediaUrl(viewData.idProof), "_blank")}>
                                 {viewData.idProof ? (
                                   <>
-                                    <img src={viewData.idProof} className="w-full h-full object-cover" />
+                                    <img src={formatMediaUrl(viewData.idProof)} className="w-full h-full object-cover" />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end justify-center p-4">
                                       <span className="text-white text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
                                         <FaEye size={12} /> View Document
@@ -875,7 +936,7 @@ export default function PanditPage() {
                               </div>
                             </div>
                             {viewData.idProof && (
-                              <button onClick={() => window.open(viewData.idProof, "_blank")}
+                              <button onClick={() => window.open(formatMediaUrl(viewData.idProof), "_blank")}
                                       className="mt-4 text-[10px] font-black text-orange-600 uppercase tracking-widest hover:text-orange-700 transition-colors">
                                 Download Original File
                               </button>
@@ -945,7 +1006,7 @@ export default function PanditPage() {
                         </div>
 
                         <div className="group relative rounded-3xl overflow-hidden aspect-video bg-gray-900 border-4 border-white shadow-2xl cursor-pointer transition-transform duration-500 hover:scale-[1.01]"
-                             onClick={() => viewData.introVideo && window.open(viewData.introVideo, "_blank")}>
+                             onClick={() => viewData.introVideo && window.open(formatMediaUrl(viewData.introVideo), "_blank")}>
                           {viewData.introVideo ? (
                             <div className="w-full h-full flex flex-col items-center justify-center">
                               <FaVideo className="text-white/10 text-6xl mb-2 transition-transform group-hover:scale-110 duration-700" />
@@ -1012,15 +1073,18 @@ export default function PanditPage() {
                     <div className="w-1 h-4 rounded-full bg-orange-500"></div> Puja Performance Gallery
                   </h4>
                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-                    {viewData.pujaPhotos.map((img, idx) => (
-                      <div key={idx} className="group relative rounded-2xl overflow-hidden aspect-square shadow-sm border border-gray-100 cursor-pointer"
-                           onClick={() => window.open(img, "_blank")}>
-                        <img src={img} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-all flex items-end p-3">
-                           <span className="text-white text-[9px] font-black uppercase tracking-widest flex items-center gap-1"><FaImage /> Expand</span>
+                    {viewData.pujaPhotos.map((img, idx) => {
+                      const imgUrl = formatMediaUrl(img);
+                      return (
+                        <div key={idx} className="group relative rounded-2xl overflow-hidden aspect-square shadow-sm border border-gray-100 cursor-pointer"
+                             onClick={() => imgUrl && window.open(imgUrl, "_blank")}>
+                          <img src={imgUrl} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-all flex items-end p-3">
+                             <span className="text-white text-[9px] font-black uppercase tracking-widest flex items-center gap-1"><FaImage /> Expand</span>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -1032,17 +1096,20 @@ export default function PanditPage() {
                     <div className="w-1 h-4 rounded-full bg-orange-500"></div> Puja Video Clips
                   </h4>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {viewData.pujaVideoClips.map((vid, idx) => (
-                      <div key={idx} className="group relative rounded-2xl overflow-hidden aspect-video bg-gray-900 border border-gray-100 cursor-pointer shadow-sm flex items-center justify-center"
-                           onClick={() => window.open(vid, "_blank")}>
-                        <div className="flex flex-col items-center">
-                           <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white mb-1 group-hover:bg-orange-500 group-hover:scale-110 transition-all">
-                             <FaVideo size={14} />
-                           </div>
-                           <span className="text-white/50 text-[9px] font-black uppercase tracking-widest">Clip {idx + 1}</span>
+                    {viewData.pujaVideoClips.map((vid, idx) => {
+                      const vidUrl = formatMediaUrl(vid);
+                      return (
+                        <div key={idx} className="group relative rounded-2xl overflow-hidden aspect-video bg-gray-900 border border-gray-100 cursor-pointer shadow-sm flex items-center justify-center"
+                             onClick={() => vidUrl && window.open(vidUrl, "_blank")}>
+                          <div className="flex flex-col items-center">
+                             <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white mb-1 group-hover:bg-orange-500 group-hover:scale-110 transition-all">
+                               <FaVideo size={14} />
+                             </div>
+                             <span className="text-white/50 text-[9px] font-black uppercase tracking-widest">Clip {idx + 1}</span>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -1101,9 +1168,9 @@ export default function PanditPage() {
                             </div>
                             <div>
                               <p className="text-xs font-bold text-gray-700">{r.user?.name || "User"}</p>
-                              <div className="flex items-center text-[10px] text-orange-400">
+                              <div className="flex items-center gap-0.5 text-[10px]">
                                 {Array.from({ length: 5 }).map((_, i) => (
-                                  <span key={i} className={i < r.rating ? "text-orange-500" : "text-gray-200"}>★</span>
+                                  <FaStar key={i} className={i < r.rating ? "text-orange-500" : "text-gray-200"} />
                                 ))}
                               </div>
                             </div>

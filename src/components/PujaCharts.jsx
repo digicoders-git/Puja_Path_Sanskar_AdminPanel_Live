@@ -1,7 +1,7 @@
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 import { useMemo } from "react";
-import { FaLayerGroup, FaCheckCircle, FaTimesCircle, FaClock } from "react-icons/fa";
+import { FaLayerGroup, FaCheckCircle, FaTimesCircle, FaClock, FaChartBar, FaChartLine } from "react-icons/fa";
 
 const THEME = "#E8621A";
 const THEME_LIGHT = "#fff4ee";
@@ -142,10 +142,11 @@ export default function PujaCharts({ pujas }) {
 
       {/* ── STAT CARDS ── */}
       <div>
-        <div className="flex items-center gap-3 mb-3">
+        <div className="flex items-center gap-2 mb-3">
           <div className="w-1 h-5 rounded-full" style={{ backgroundColor: THEME }} />
-          <h3 className="text-sm font-bold text-gray-800">📊 Overview</h3>
-          <span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ backgroundColor: THEME_LIGHT, color: THEME }}>
+          <FaChartBar className="text-orange-500" />
+          <h3 className="text-sm font-bold text-gray-800">Overview</h3>
+          <span className="px-2 py-0.5 rounded-full text-xs font-semibold ml-1" style={{ backgroundColor: THEME_LIGHT, color: THEME }}>
             {s.total} Total Pujas
           </span>
         </div>
@@ -167,9 +168,10 @@ export default function PujaCharts({ pujas }) {
 
       {/* ── CHARTS ── */}
       <div>
-        <div className="flex items-center gap-3 mb-3">
+        <div className="flex items-center gap-2 mb-3">
           <div className="w-1 h-5 rounded-full" style={{ backgroundColor: THEME }} />
-          <h3 className="text-sm font-bold text-gray-800">📈 Charts & Analytics</h3>
+          <FaChartLine className="text-orange-500" />
+          <h3 className="text-sm font-bold text-gray-800">Charts & Analytics</h3>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {charts.map((opts, i) => (

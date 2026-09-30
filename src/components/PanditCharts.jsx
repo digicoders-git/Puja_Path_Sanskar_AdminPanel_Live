@@ -2,21 +2,40 @@ import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 import { useMemo } from "react";
 import {
-  FaUsers, FaCheckCircle, FaTimesCircle, FaGraduationCap,
+  FaUsers, FaCheckCircle, FaTimesCircle, FaGraduationCap, FaChartBar, FaChartLine
 } from "react-icons/fa";
 
 const THEME = "#E8621A";
 const THEME_LIGHT = "#fff4ee";
 
-const cnt = (arr, key) =>
+const cnt = (arr, keyExtractor) =>
   arr.reduce((acc, item) => {
-    const val = item[key] || "Unknown";
+    let val = typeof keyExtractor === 'function' ? keyExtractor(item) : item[keyExtractor];
+    if (!val || val === "" || val === "null" || val === "undefined") {
+      return acc; // Don't clutter charts with empty/unknown values if all empty
+    }
     acc[val] = (acc[val] || 0) + 1;
     return acc;
   }, {});
 
-const avg = (arr, key) => {
-  const vals = arr.map((p) => Number(p[key]) || 0).filter((v) => v > 0);
+const parseYears = (val) => {
+  if (val === null || val === undefined) return 0;
+  const str = String(val).trim();
+  if (!str) return 0;
+  const num = Number(str);
+  if (!isNaN(num) && num > 0) return num;
+  if (str.includes("1–3") || str.includes("1-3")) return 2;
+  if (str.includes("3–7") || str.includes("3-7")) return 5;
+  if (str.includes("7+")) return 8;
+  const match = str.match(/\d+/);
+  return match ? Number(match[0]) : 0;
+};
+
+const avg = (arr, keyExtractor) => {
+  const vals = arr.map((p) => {
+    if (typeof keyExtractor === 'function') return keyExtractor(p);
+    return Number(p[keyExtractor]) || 0;
+  }).filter((v) => v > 0);
   return vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : 0;
 };
 
@@ -34,13 +53,18 @@ export default function PanditCharts({ pandits }) {
 
     const active = pandits.filter((p) => p.isActive).length;
 
-    const expGroups = { "0-5 yrs": 0, "6-10 yrs": 0, "11-20 yrs": 0, "20+ yrs": 0 };
+    const expGroups = { "1–3 Years": 0, "3–7 Years": 0, "7+ Years": 0, "Others": 0 };
     pandits.forEach((p) => {
-      const e = Number(p.totalExperience) || 0;
-      if (e <= 5) expGroups["0-5 yrs"]++;
-      else if (e <= 10) expGroups["6-10 yrs"]++;
-      else if (e <= 20) expGroups["11-20 yrs"]++;
-      else expGroups["20+ yrs"]++;
+      const expStr = (p.experience || p.totalExperience || "").toString().trim();
+      if (expStr.includes("1–3") || expStr.includes("1-3") || expStr === "1" || expStr === "2" || expStr === "3") {
+        expGroups["1–3 Years"]++;
+      } else if (expStr.includes("3–7") || expStr.includes("3-7") || expStr === "4" || expStr === "5" || expStr === "6" || expStr === "7") {
+        expGroups["3–7 Years"]++;
+      } else if (expStr.includes("7+") || (Number(expStr) > 7)) {
+        expGroups["7+ Years"]++;
+      } else if (expStr) {
+        expGroups["Others"]++;
+      }
     });
 
     const chargesData = pandits
@@ -48,22 +72,29 @@ export default function PanditCharts({ pandits }) {
       .sort((a, b) => Number(b.basicPujaCharges) - Number(a.basicPujaCharges))
       .slice(0, 8);
 
-    const travelWilling = cnt(pandits, "travelWillingness");
-    const availability = cnt(pandits, "availabilityType");
+    const travelWilling = cnt(pandits, (p) => p.travelAvailability || p.travelWillingness);
+    const serviceArea = cnt(pandits, "serviceArea");
     const mantraLevel = cnt(pandits, "mantraLevel");
-    const pujaKit = cnt(pandits, "pujaKitProvided");
-    const veda = cnt(pandits, "vedaSpecialization");
-    const specialization = cnt(pandits, "specialization");
+    const pujaKit = cnt(pandits, (p) => p.samagriArrangement || p.samagriExperience || p.pujaKitProvided);
+    const gender = cnt(pandits, (p) => p.gender || "Not Specified");
     const city = cnt(pandits, "city");
-    const gender = cnt(pandits, "gender");
+
+    // Specializations (Array in schema)
+    const specialization = {};
+    pandits.forEach((p) => {
+      const specs = Array.isArray(p.specializations) ? p.specializations : (p.specialization ? [p.specialization] : []);
+      specs.forEach((sp) => {
+        if (sp) specialization[sp] = (specialization[sp] || 0) + 1;
+      });
+    });
 
     const skills = {
       "Bhajan/Kirtan": pandits.filter((p) => p.bhajanKirtan).length,
-      Astrology: pandits.filter((p) => p.astrology).length,
-      Vastu: pandits.filter((p) => p.vastu).length,
-      Havan: pandits.filter((p) => p.havan).length,
-      Corporate: pandits.filter((p) => p.corporateExperience).length,
-      "Online Puja": pandits.filter((p) => p.onlinePujaSupport).length,
+      "Astrology": pandits.filter((p) => p.astrology).length,
+      "Vastu": pandits.filter((p) => p.vastu).length,
+      "Havan": pandits.filter((p) => p.havan).length,
+      "Corporate": pandits.filter((p) => p.corporateExperience).length,
+      "Live Events": pandits.filter((p) => p.liveEventExperience && p.liveEventExperience.length > 0).length,
     };
 
     const emergency = pandits.filter((p) => p.emergencyBooking).length;
@@ -71,11 +102,11 @@ export default function PanditCharts({ pandits }) {
     return {
       total: pandits.length, active, inactive: pandits.length - active,
       avgBasic: avg(pandits, "basicPujaCharges"),
-      avgExp: avg(pandits, "totalExperience"),
+      avgExp: avg(pandits, (p) => parseYears(p.totalExperience || p.experience)),
       avgDist: avg(pandits, "maxDistance"),
       emergency,
-      expGroups, chargesData, travelWilling, availability,
-      mantraLevel, pujaKit, veda,
+      expGroups, chargesData, travelWilling, serviceArea,
+      mantraLevel, pujaKit,
       specialization, city, gender, skills,
     };
   }, [pandits]);
@@ -87,7 +118,7 @@ export default function PanditCharts({ pandits }) {
     { label: "Total Pandits", value: s.total, icon: FaUsers, color: THEME, bg: THEME_LIGHT },
     { label: "Active", value: s.active, icon: FaCheckCircle, color: "#16a34a", bg: "#f0fdf4" },
     { label: "Inactive", value: s.inactive, icon: FaTimesCircle, color: "#ef4444", bg: "#fef2f2" },
-    { label: "Avg Experience", value: `${s.avgExp} yrs`, icon: FaGraduationCap, color: "#7c3aed", bg: "#f5f3ff" },
+    { label: "Avg Experience", value: s.avgExp > 0 ? `${s.avgExp} yrs` : "—", icon: FaGraduationCap, color: "#7c3aed", bg: "#f5f3ff" },
   ];
 
   // ── CHART OPTIONS ────────────────────────────────────────────
@@ -171,14 +202,13 @@ export default function PanditCharts({ pandits }) {
     ],
   };
 
-  // 8. Pie — Veda Specialization
-  const vedaColors = ["#7c3aed", "#8b5cf6", "#a78bfa", "#c4b5fd", "#1e3a8a", "#2563eb", "#3b82f6"];
+  // 8. Donut — Service Area
   const c8 = {
     ...base, chart: { ...base.chart, type: "pie", height: 240 },
-    title: { ...base.title, text: "Veda Specialization" },
+    title: { ...base.title, text: "Service Area Coverage" },
     tooltip: { pointFormat: "<b>{point.y}</b> ({point.percentage:.0f}%)" },
-    plotOptions: { pie: { dataLabels: { enabled: true, format: "{point.name}: {point.y}", style: { fontSize: "9px" } } } },
-    series: [{ name: "Pandits", colorByPoint: true, data: Object.entries(s.veda).map(([name, y], i) => ({ name, y, color: vedaColors[i % vedaColors.length] })) }],
+    plotOptions: { pie: { innerSize: "50%", dataLabels: { enabled: true, format: "{point.name}: {point.y}", style: { fontSize: "9px" } } } },
+    series: [{ name: "Pandits", colorByPoint: true, data: Object.entries(s.serviceArea).map(([name, y], i) => ({ name, y, color: specColors[i % specColors.length] })) }],
   };
 
   // 9. Column — Mantra Level
@@ -192,29 +222,20 @@ export default function PanditCharts({ pandits }) {
     series: [{ name: "Pandits", data: Object.values(s.mantraLevel), showInLegend: false }],
   };
 
-  // 10. Donut — Travel Willingness
+  // 10. Donut — Travel Availability
   const travelColors = ["#059669", "#0891b2", "#7c3aed", "#d97706", "#ef4444"];
   const c10 = {
     ...base, chart: { ...base.chart, type: "pie", height: 240 },
-    title: { ...base.title, text: "Travel Willingness" },
+    title: { ...base.title, text: "Travel Availability" },
     tooltip: { pointFormat: "<b>{point.y}</b> ({point.percentage:.0f}%)" },
     plotOptions: { pie: { innerSize: "50%", dataLabels: { enabled: true, format: "{point.name}: {point.y}", style: { fontSize: "9px" } } } },
     series: [{ name: "Pandits", colorByPoint: true, data: Object.entries(s.travelWilling).map(([name, y], i) => ({ name, y, color: travelColors[i % travelColors.length] })) }],
   };
 
-  // 11. Pie — Availability Type
+  // 11. Column — Puja Kit Policy (Samagri)
   const c11 = {
-    ...base, chart: { ...base.chart, type: "pie", height: 240 },
-    title: { ...base.title, text: "Availability Type" },
-    tooltip: { pointFormat: "<b>{point.y}</b> ({point.percentage:.0f}%)" },
-    plotOptions: { pie: { dataLabels: { enabled: true, format: "{point.name}: {point.y}", style: { fontSize: "9px" } } } },
-    series: [{ name: "Pandits", colorByPoint: true, data: Object.entries(s.availability).map(([name, y], i) => ({ name, y, color: specColors[i % specColors.length] })) }],
-  };
-
-  // 12. Column — Puja Kit Policy
-  const c12 = {
     ...base, chart: { ...base.chart, type: "column", height: 240 },
-    title: { ...base.title, text: "Puja Kit (Samagri) Policy" },
+    title: { ...base.title, text: "Samagri / Puja Kit Arrangement" },
     xAxis: { categories: Object.keys(s.pujaKit), labels: { style: { fontSize: "9px", color: "#64748b" } } },
     yAxis: { title: { text: null }, allowDecimals: false },
     tooltip: { valueSuffix: " pandits" },
@@ -222,14 +243,20 @@ export default function PanditCharts({ pandits }) {
     series: [{ name: "Pandits", data: Object.values(s.pujaKit), showInLegend: false }],
   };
 
-  const charts = [c1, c2, c4, c5, c6, c8, c9, c11, c12];
+  // Filter only charts that have non-empty data
+  const charts = [c1, c2, c3, c4, c5, c6, c8, c10, c11].filter(c => {
+    if (c.series && c.series[0] && c.series[0].data) {
+      return c.series[0].data.length > 0;
+    }
+    return true;
+  });
 
   return (
     <div className="mb-6 space-y-6">
 
       {/* ── STAT CARDS ── */}
       <div>
-        <SectionTitle title="📊 Overview Stats" count={`${s.total} Pandits`} />
+        <SectionTitle icon={<FaChartBar className="text-orange-500" />} title="Overview Stats" count={`${s.total} Pandits`} />
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {statCards.map(({ label, value, icon: Icon, color, bg }) => (
             <div key={label} className="rounded-2xl p-5 flex items-center gap-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
@@ -248,7 +275,7 @@ export default function PanditCharts({ pandits }) {
 
       {/* ── CHARTS GRID ── */}
       <div>
-        <SectionTitle title="📈 Charts & Analytics" />
+        <SectionTitle icon={<FaChartLine className="text-orange-500" />} title="Charts & Analytics" />
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {charts.map((opts, i) => (
             <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-3 hover:shadow-md transition-shadow">
@@ -264,13 +291,14 @@ export default function PanditCharts({ pandits }) {
   );
 }
 
-function SectionTitle({ title, count }) {
+function SectionTitle({ icon, title, count }) {
   return (
-    <div className="flex items-center gap-3 mb-3">
+    <div className="flex items-center gap-2 mb-3">
       <div className="w-1 h-5 rounded-full" style={{ backgroundColor: THEME }} />
+      {icon && <span className="text-sm">{icon}</span>}
       <h3 className="text-sm font-bold text-gray-800">{title}</h3>
       {count && (
-        <span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ backgroundColor: THEME_LIGHT, color: THEME }}>
+        <span className="px-2 py-0.5 rounded-full text-xs font-semibold ml-1" style={{ backgroundColor: THEME_LIGHT, color: THEME }}>
           {count}
         </span>
       )}

@@ -4,7 +4,8 @@ import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 import {
   FaUsers, FaCheckCircle, FaTimesCircle, FaPrayingHands,
-  FaEnvelope, FaLayerGroup, FaMoneyBillWave, FaCalendarCheck, FaClock, FaStar, FaUserTie
+  FaEnvelope, FaLayerGroup, FaMoneyBillWave, FaCalendarCheck, FaClock, FaStar, FaUserTie,
+  FaChartLine, FaCalendarAlt, FaPray, FaCircle
 } from "react-icons/fa";
 
 const THEME = "#E8621A";
@@ -191,7 +192,7 @@ export default function Dashboard() {
         </div>
         <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold"
           style={{ backgroundColor: THEME_LIGHT, color: THEME }}>
-          🕉️ Live Data
+          <FaCircle className="text-[8px] text-green-500 animate-pulse" /> Live Data
         </div>
       </div>
 
@@ -215,7 +216,9 @@ export default function Dashboard() {
       <div>
         <div className="flex items-center gap-2 mb-3">
           <div className="w-1 h-5 rounded-full" style={{ backgroundColor: THEME }} />
-          <h3 className="text-sm font-bold text-gray-800">📈 Analytics & Charts</h3>
+          <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+            <FaChartLine className="text-orange-500" /> Analytics & Charts
+          </h3>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
           {[c7, c8, c1, c5, c9, c4, c6, c2, c3].map((opts, i) => (
@@ -233,7 +236,9 @@ export default function Dashboard() {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-50 flex items-center justify-between"
             style={{ background: `linear-gradient(135deg, ${THEME}10, ${THEME}05)` }}>
-            <p className="text-sm font-bold text-gray-800">🕉️ Recent Pandits</p>
+            <p className="text-sm font-bold text-gray-800 flex items-center gap-2">
+              <FaUserTie className="text-orange-500" /> Recent Pandits
+            </p>
             <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ backgroundColor: THEME_LIGHT, color: THEME }}>
               {recentPandits.length}
             </span>
@@ -243,9 +248,18 @@ export default function Dashboard() {
               <div key={p._id} className="flex items-center gap-3 px-4 py-3 hover:bg-orange-50 transition-colors">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-white text-sm font-bold overflow-hidden"
                   style={{ backgroundColor: THEME }}>
-                  {p.profilePhoto
-                    ? <img src={`${BASE}/${p.profilePhoto}`} className="w-full h-full object-cover" alt="" />
-                    : p.fullName?.charAt(0)}
+                  {p.profilePhoto ? (
+                    <img
+                      src={p.profilePhoto.startsWith("http://") || p.profilePhoto.startsWith("https://") ? p.profilePhoto : `${BASE ? BASE.replace(/\/+$/, '') : ''}/${p.profilePhoto.replace(/^\/+/, '')}`}
+                      className="w-full h-full object-cover"
+                      alt=""
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    p.fullName?.charAt(0)
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-gray-800 truncate">{p.fullName}</p>
@@ -263,7 +277,9 @@ export default function Dashboard() {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-50 flex items-center justify-between"
             style={{ background: `linear-gradient(135deg, #7c3aed10, #7c3aed05)` }}>
-            <p className="text-sm font-bold text-gray-800">🙏 Recent Pujas</p>
+            <p className="text-sm font-bold text-gray-800 flex items-center gap-2">
+              <FaPray className="text-purple-500" /> Recent Pujas
+            </p>
             <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-purple-50 text-purple-600">
               {recentPujas.length}
             </span>
@@ -271,10 +287,10 @@ export default function Dashboard() {
           <div className="divide-y divide-gray-50">
             {recentPujas.map((p) => (
               <div key={p._id} className="flex items-center gap-3 px-4 py-3 hover:bg-purple-50 transition-colors">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 bg-purple-50 overflow-hidden">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 bg-purple-50 overflow-hidden text-purple-600">
                   {p.image
                     ? <img src={`${BASE}/${p.image.replace(/\\/g, "/")}`} className="w-full h-full object-cover" alt="" />
-                    : <span className="text-lg">🕉️</span>}
+                    : <FaPrayingHands className="text-base" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-gray-800 truncate">{p.pujaName}</p>
@@ -292,7 +308,9 @@ export default function Dashboard() {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-50 flex items-center justify-between"
             style={{ background: `linear-gradient(135deg, #d9770610, #d9770605)` }}>
-            <p className="text-sm font-bold text-gray-800">📩 Recent Contacts</p>
+            <p className="text-sm font-bold text-gray-800 flex items-center gap-2">
+              <FaEnvelope className="text-amber-500" /> Recent Contacts
+            </p>
             <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-amber-50 text-amber-600">
               {recentContacts.length}
             </span>
@@ -319,7 +337,9 @@ export default function Dashboard() {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-50 flex items-center justify-between"
             style={{ background: `linear-gradient(135deg, #16a34a10, #16a34a05)` }}>
-            <p className="text-sm font-bold text-gray-800">📅 Recent Bookings</p>
+            <p className="text-sm font-bold text-gray-800 flex items-center gap-2">
+              <FaCalendarAlt className="text-green-500" /> Recent Bookings
+            </p>
             <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-green-50 text-green-600">
               {data.recentBookings?.length || 0}
             </span>
@@ -348,7 +368,9 @@ export default function Dashboard() {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
         <div className="flex items-center gap-2 mb-4">
           <div className="w-1 h-5 rounded-full" style={{ backgroundColor: THEME }} />
-          <h3 className="text-sm font-bold text-gray-800">🎯 Specialization Breakdown</h3>
+          <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+            <FaLayerGroup className="text-orange-500" /> Specialization Breakdown
+          </h3>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
           {stats.specializationStats.map(({ _id, count }, i) => {
