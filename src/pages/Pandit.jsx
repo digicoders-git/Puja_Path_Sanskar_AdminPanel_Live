@@ -3,7 +3,7 @@ import { useGooglePlacesAutocomplete } from "../hooks/useGooglePlacesAutocomplet
 import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
 import {
-  getAllPandits, createPandit, updatePandit,
+  getAllPandits, getPanditById, createPandit, updatePandit,
   deletePandit, togglePandit, getEnums,
 } from "../services/panditService";
 import { getAllPujas } from "../services/pujaService";
@@ -137,6 +137,7 @@ export default function PanditPage() {
   const [submitting, setSubmitting] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
   const [viewData, setViewData] = useState(null);
+  const [viewLoading, setViewLoading] = useState(false);
   const [step, setStep] = useState(1);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -183,11 +184,17 @@ export default function PanditPage() {
     setStep(1); setShowModal(true);
   };
 
-  const openEdit = (p) => {
-    setEditData(p);
+  const openEdit = async (p) => {
+    let panditObj = p;
+    try {
+      const fresh = await getPanditById(token, p._id);
+      if (fresh && fresh._id) panditObj = fresh;
+    } catch (_) {}
+
+    setEditData(panditObj);
     setForm({
-      ...EMPTY, ...p,
-      selectedPujas: p.selectedPujas ? p.selectedPujas.map((s) => ({
+      ...EMPTY, ...panditObj,
+      selectedPujas: panditObj.selectedPujas ? panditObj.selectedPujas.map((s) => ({
         puja: s.puja?._id || s.puja || s,
         price: s.price || 0
       })) : [],
@@ -425,10 +432,15 @@ export default function PanditPage() {
 
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="flex gap-1.5">
-                      <button onClick={() => setViewData(p)} title="View Full Details"
+                      <button onClick={async () => {
+                          setViewLoading(true);
+                          const fresh = await getPanditById(token, p._id);
+                          setViewData(fresh);
+                          setViewLoading(false);
+                        }} title="View Full Details"
                         className="w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-110 shadow-sm border border-orange-100"
                         style={{ backgroundColor: THEME_LIGHT, color: THEME }}>
-                        <FaEye className="text-sm" />
+                        {viewLoading ? <span className="text-[10px]">...</span> : <FaEye className="text-sm" />}
                       </button>
                       <button onClick={() => openEdit(p)} title="Edit"
                         className="w-8 h-8 rounded-lg flex items-center justify-center border border-orange-100 transition-all hover:scale-110 shadow-sm"
@@ -548,6 +560,8 @@ export default function PanditPage() {
                       Type karte hi location suggestion aayega — select karte hi address & coordinates auto-fetch ho jayenge.
                     </p>
                   </div>
+                  <InputField name="permanentAddress" label="Permanent Address" placeholder="Village / Home Town / Permanent Address" value={form.permanentAddress} onChange={handleChange} />
+                  <InputField name="pincode" label="Pincode" placeholder="6 Digit Pincode" value={form.pincode} onChange={handleChange} />
                   <SelectField name="experience" label="4. Experience" options={["1–3 Years", "3–7 Years", "7+ Years"]} value={form.experience} onChange={handleChange} />
                   
                   <div className="sm:col-span-2 group">
@@ -702,6 +716,16 @@ export default function PanditPage() {
                   <InputField name="trainingGurukul" label="Training / Gurukul Name" value={form.trainingGurukul} onChange={handleChange} />
                   <SelectField name="specialization" label="Primary Specialization" options={enums.specialization || []} value={form.specialization} onChange={handleChange} />
                   <SelectField name="vedaSpecialization" label="Veda Specialization" options={enums.vedaSpecialization || []} value={form.vedaSpecialization} onChange={handleChange} />
+                  
+                  <div className="sm:col-span-2 bg-orange-50/60 p-3.5 rounded-xl border border-orange-100 my-1">
+                    <p className="text-[11px] font-bold text-orange-700 uppercase tracking-wider mb-2">Standard Puja Charges & Rates (₹)</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                      <InputField name="basicPujaCharges" label="Basic Puja (₹)" placeholder="e.g. 1500" value={form.basicPujaCharges} onChange={handleChange} />
+                      <InputField name="akhandPathCharges" label="Akhand Path (₹)" placeholder="e.g. 5100" value={form.akhandPathCharges} onChange={handleChange} />
+                      <InputField name="perDayCharges" label="Per Day Charges (₹)" placeholder="e.g. 2100" value={form.perDayCharges} onChange={handleChange} />
+                      <InputField name="travelCharges" label="Travel Charges (₹)" placeholder="e.g. 500" value={form.travelCharges} onChange={handleChange} />
+                    </div>
+                  </div>
                   <div className="sm:col-span-2">
                     <label className={labelCls}>Select Pujas You Perform</label>
                     <input 
@@ -753,10 +777,27 @@ export default function PanditPage() {
                 </>)}
 
                 {step === 5 && (<>
-                  <InputField name="availableCities" label="Available Cities" value={form.availableCities} onChange={handleChange} />
+                  <SelectField name="availabilityType" label="Availability Type" options={["Full-time", "Part-time", "Weekends Only", "On-Call"]} value={form.availabilityType} onChange={handleChange} />
                   <InputField name="maxDistance" label="Max Travel Distance (KM)" type="number" value={form.maxDistance} onChange={handleChange} />
-                  <InputField name="upiId" label="UPI ID" value={form.upiId} onChange={handleChange} />
-                  <CheckField name="emergencyBooking" label="Accept Emergency Booking" checked={form.emergencyBooking} onChange={handleChange} />
+                  <div className="sm:col-span-2 group">
+                    <label className={labelCls}>Available Days</label>
+                    <div className="flex flex-wrap gap-2 p-2.5 border rounded-xl bg-gray-50">
+                      {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map(d => (
+                        <button key={d} type="button" onClick={() => {
+                          const current = Array.isArray(form.availableDays) ? form.availableDays : [];
+                          const updated = current.includes(d) ? current.filter(v => v !== d) : [...current, d];
+                          setForm(prev => ({ ...prev, availableDays: updated }));
+                        }} className={`px-2.5 py-1 rounded-full text-[10px] font-bold border transition-all ${form.availableDays?.includes(d) ? "bg-[#e8621a] text-white border-[#e8621a]" : "bg-white text-gray-500 border-gray-200"}`}>{d}</button>
+                      ))}
+                    </div>
+                  </div>
+                  <InputField name="bankUpiDetails" label="Bank / UPI Details" placeholder="UPI ID or Account info" value={form.bankUpiDetails} onChange={handleChange} />
+                  <InputField name="bankDetails" label="Bank Name / IFSC (Optional)" placeholder="e.g. SBI, IFSC: SBIN000..." value={form.bankDetails} onChange={handleChange} />
+                  <InputField name="availableCities" label="Available In Cities (Comma separated)" placeholder="Lucknow, Kanpur, Ayodhya" value={Array.isArray(form.availableCities) ? form.availableCities.join(", ") : form.availableCities} onChange={(e) => {
+                    const cities = e.target.value.split(",").map(c => c.trim()).filter(Boolean);
+                    setForm(prev => ({ ...prev, availableCities: cities }));
+                  }} />
+                  <CheckField name="emergencyBooking" label="Accept Emergency Booking" checked={form.emergencyBooking === "Yes" || form.emergencyBooking === true} onChange={(e) => setForm(prev => ({ ...prev, emergencyBooking: e.target.checked ? "Yes" : "No" }))} />
                   <CheckField name="declaration" label="I declare all info is true" checked={form.declaration} onChange={handleChange} />
                 </>)}
               </div>

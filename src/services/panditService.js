@@ -8,6 +8,9 @@ export const getEnums = () =>
 export const getAllPandits = (token) =>
   fetch(`${BASE}/api/pandits`, { headers: headers(token) }).then((r) => r.json());
 
+export const getPanditById = (token, id) =>
+  fetch(`${BASE}/api/pandits/${id}`, { headers: headers(token) }).then((r) => r.json());
+
 export const createPandit = (token, formData) =>
   fetch(`${BASE}/api/pandits`, { method: "POST", headers: headers(token), body: formData }).then((r) => r.json());
 
