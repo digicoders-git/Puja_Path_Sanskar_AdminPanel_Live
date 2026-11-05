@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import { FaUserTie, FaLanguage, FaStar, FaInbox, FaSearch, FaTimes, FaChevronLeft, FaChevronRight, FaTrash, FaEdit, FaPlus, FaCheckCircle, FaTimesCircle, FaEye, FaUpload, FaCrop, FaUndo, FaSearchPlus, FaSearchMinus, FaRedo } from "react-icons/fa";
+import { FaUserTie, FaLanguage, FaStar, FaPhoneAlt, FaInbox, FaSearch, FaTimes, FaChevronLeft, FaChevronRight, FaTrash, FaEdit, FaPlus, FaCheckCircle, FaTimesCircle, FaEye, FaUpload, FaCrop, FaUndo, FaSearchPlus, FaSearchMinus, FaRedo } from "react-icons/fa";
 
 const THEME = "#E8621A";
 const THEME_LIGHT = "#fff4ee";
@@ -65,7 +65,7 @@ export default function Astrologers() {
   };
 
   const defaultFormData = {
-    name: "", specialty: "", experience: "", rating: 5, reviews: "0",
+    name: "", specialty: "", phone: "", mobile: "", experience: "", rating: 5, reviews: "0",
     languages: "", badge: "", badgeColor: "#E65100", status: "online", fees: 151, image: "", 
     bio: "", location: "", isVerified: false,
     consultationModes: ["Chat", "Voice Call", "Video Call"],
@@ -107,6 +107,8 @@ export default function Astrologers() {
       setFormData({
         ...defaultFormData,
         ...astrologer,
+        phone: astrologer.phone || astrologer.mobile || "",
+        mobile: astrologer.mobile || astrologer.phone || "",
         services: parsedServices || defaultServices,
         plans: astrologer.plans && astrologer.plans.length > 0 ? astrologer.plans : defaultPlans,
         availability: astrologer.availability?.days ? astrologer.availability : defaultAvailability,
@@ -247,6 +249,8 @@ export default function Astrologers() {
       // Clean and sanitize numerical fields before submitting
       const sanitizedPayload = {
         ...formData,
+        phone: formData.phone?.trim() || "",
+        mobile: formData.phone?.trim() || formData.mobile?.trim() || "",
         fees: Number(formData.fees) || 0,
         rating: Number(formData.rating) || 5,
         plans: (formData.plans || []).map(p => ({
@@ -283,7 +287,9 @@ export default function Astrologers() {
     const q = search.toLowerCase();
     return (
       a.name?.toLowerCase().includes(q) ||
-      a.specialty?.toLowerCase().includes(q)
+      a.specialty?.toLowerCase().includes(q) ||
+      a.phone?.toLowerCase().includes(q) ||
+      a.mobile?.toLowerCase().includes(q)
     );
   });
 
@@ -400,6 +406,11 @@ export default function Astrologers() {
                         <div className="text-xs text-yellow-600 flex items-center gap-1 mt-0.5">
                           <FaStar className="text-[10px]" /> {a.rating} ({a.reviews})
                         </div>
+                        {(a.phone || a.mobile) && (
+                          <div className="text-xs text-gray-500 flex items-center gap-1 mt-0.5 font-medium">
+                            <FaPhoneAlt className="text-[9px] text-blue-500" /> {a.phone || a.mobile}
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-gray-600">{a.specialty}</td>
@@ -498,6 +509,23 @@ export default function Astrologers() {
                     <div className="space-y-1">
                       <label className="text-sm font-semibold text-gray-600">Specialty</label>
                       <input required value={formData.specialty} onChange={e => setFormData({...formData, specialty: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 bg-white transition-all" style={{ "--tw-ring-color": THEME_LIGHT }} placeholder="e.g. Vedic Astrology" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-sm font-semibold text-gray-600 flex items-center gap-1.5">
+                        <FaPhoneAlt className="text-xs text-orange-600" /> Phone Number (कॉलिंग नंबर) <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        required
+                        value={formData.phone || ""}
+                        onChange={e => {
+                          const val = e.target.value.replace(/[^0-9+]/g, '');
+                          setFormData({ ...formData, phone: val, mobile: val });
+                        }}
+                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 bg-white transition-all"
+                        style={{ "--tw-ring-color": THEME_LIGHT, borderColor: formData.phone ? THEME : "" }}
+                        placeholder="e.g. 9876543210"
+                      />
                     </div>
                     <div className="space-y-1">
                       <label className="text-sm font-semibold text-gray-600">Location</label>

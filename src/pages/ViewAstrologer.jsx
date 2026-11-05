@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FaCheckCircle, FaTimesCircle, FaStar, FaArrowLeft, FaUserTie, FaSun } from 'react-icons/fa';
+import { FaCheckCircle, FaTimesCircle, FaStar, FaArrowLeft, FaUserTie, FaSun, FaPhoneAlt } from 'react-icons/fa';
 import { toast } from 'sonner';
 
 const BASE = import.meta.env.VITE_API_BASE_URL;
@@ -95,7 +95,11 @@ export default function ViewAstrologer() {
               )}
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-gray-50 p-5 rounded-xl border border-gray-100 mt-6 w-full">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 bg-gray-50 p-5 rounded-xl border border-gray-100 mt-6 w-full">
+              <div>
+                <p className="text-xs text-gray-400 uppercase font-bold tracking-wider mb-1 flex items-center gap-1"><FaPhoneAlt className="text-orange-500 text-[10px]" /> Phone Number</p>
+                <a href={astrologer.phone || astrologer.mobile ? `tel:${astrologer.phone || astrologer.mobile}` : '#'} className="font-semibold text-blue-600 hover:underline">{astrologer.phone || astrologer.mobile || 'N/A'}</a>
+              </div>
               <div>
                 <p className="text-xs text-gray-400 uppercase font-bold tracking-wider mb-1">Experience</p>
                 <p className="font-semibold text-gray-800">{astrologer.experience}</p>
